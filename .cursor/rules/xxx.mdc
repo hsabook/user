@@ -3,4 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-Dự án sử dụng 
+- Dự án sử dụng  Tailwind CSS và shadcn ui 
+- Cấu trúc thu mục mặc định logic phải đóng gói trong hook
+- Một file không quá 2000 từ 
+- Các logic và giao  diện phải chia nhỏ ra để sử dụng lại 
