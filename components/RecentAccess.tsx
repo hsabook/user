@@ -1,5 +1,8 @@
+"use client";
+
 import Image from 'next/image';
 import { Star, ChevronRight } from 'lucide-react';
+import BannerSlider from './BannerSlider';
 
 type RecentItemProps = {
   title: string;
@@ -52,6 +55,7 @@ const RecentAccess = () => {
 
   return (
     <div className="mb-8">
+      <BannerSlider />
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-medium">Truy cập gần đây</h2>
         <div className="flex items-center text-amber-500">
