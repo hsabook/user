@@ -1,4 +1,3 @@
-// lib/authService.ts
 
 // Hàm xử lý đăng nhập
 export async function loginUser(username: string, password: string) {
@@ -60,7 +59,7 @@ export async function registerUser(
         password,
         phone_number,
         avatar,
-        username
+        username: full_name
       })
     });
 

@@ -127,9 +127,6 @@ const Header = () => {
               </div>
             )}
           </div>
-          <span className="ml-2 text-sm font-medium hidden md:block">
-            {apiUserData?.full_name || "Người dùng"}
-          </span>
           <ChevronDown className="w-4 h-4 ml-1 text-gray-600" />
         </div>
       </div>

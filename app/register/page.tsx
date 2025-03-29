@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
-import { registerUser } from "@/lib/authServices";
+import { registerUser } from "@/app/api/auth/authServices";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
