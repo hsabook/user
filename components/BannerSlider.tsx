@@ -4,19 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-interface BannerItem {
-  index: number;
-  name: string;
-  url: string;
-  link: string;
-}
-
-interface BannerData {
-  id: string;
-  data: BannerItem[];
-  key: string;
-}
+import { getBannerData, type BannerData, type BannerItem } from '@/api/banner';
 
 const BannerSlider = () => {
   const [bannerData, setBannerData] = useState<BannerData | null>(null);
@@ -29,11 +17,7 @@ const BannerSlider = () => {
   useEffect(() => {
     const fetchBannerData = async () => {
       try {
-        const response = await fetch('https://api.hsabook.vn/config-data/banner');
-        if (!response.ok) {
-          throw new Error('Failed to fetch banner data');
-        }
-        const data = await response.json();
+        const data = await getBannerData();
         setBannerData(data);
         setLoading(false);
       } catch (err) {

@@ -16,7 +16,7 @@ const Sidebar = () => {
         <div className="w-10 h-10 rounded-full bg-red-100 overflow-hidden mr-3">
           <Image src="/avatar.png" alt="User" width={40} height={40} />
         </div>
-        <span className="font-medium">Alex Rouge</span>
+        <span className="font-medium">Lê Văn Mong</span>
       </div>
 
       {/* Navigation Menu */}
