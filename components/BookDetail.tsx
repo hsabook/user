@@ -161,20 +161,11 @@ const BookDetail = ({
                           <ChevronRight className="w-4 h-4 text-gray-500" />
                         )}
                       </div>
-                      <div className="w-8 h-8 flex-shrink-0">
-                              <Image
-                                src="/images/summary-icon.svg"
-                                alt="HSA Education Logo"
-                                width={56}
-                                height={56}
-                                className="w-full h-full"
-                              />
-                            </div>
                       <div>
-                        <h3 className="font-medium">{chapter.title}</h3>
-                        <div className="text-xs text-gray-500">
-                          ID: {chapter.id}
-                        </div>
+                        <Link href={`/books/${id}/chapters/${chapter.id}`} className="font-medium hover:text-blue-600">
+                          {chapter.title}
+                        </Link>
+                        <div className="text-xs text-gray-500">ID: {chapter.id}</div>
                       </div>
                     </div>
                     {chapter.isLocked ? (
