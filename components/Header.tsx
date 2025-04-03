@@ -149,6 +149,7 @@ const Header = () => {
   const profileRef = useRef<HTMLDivElement>(null);
   const [userData, setUserData] = useState<LocalUserData | null>(null);
   const { isActivateModalOpen, isUserProfileModalOpen, openUserProfileModal } = useModal();
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false); // Kiểm soát trạng thái mở rộng của thanh tìm kiếm trên mobile
   
   // Lọc kết quả dựa vào tab đang active
   const filteredResults = searchResults.filter(item => {
@@ -211,6 +212,18 @@ const Header = () => {
     };
   }, [searchTerm]); // Loại bỏ search từ dependencies để tránh re-run effect khi search thay đổi
   
+  // Thêm useEffect mới để đóng thanh tìm kiếm khi resize về desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) { // md breakpoint
+        setIsSearchExpanded(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   // Hàm xử lý tìm kiếm khi submit form
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,6 +264,20 @@ const Header = () => {
     }
   };
 
+  // Hàm toggle thanh tìm kiếm trên mobile
+  const toggleSearchExpanded = () => {
+    setIsSearchExpanded(!isSearchExpanded);
+    if (!isSearchExpanded) {
+      // Khi mở thanh tìm kiếm, focus vào ô input
+      setTimeout(() => {
+        const searchInput = document.querySelector('input[type="text"]');
+        if (searchInput) {
+          (searchInput as HTMLInputElement).focus();
+        }
+      }, 100);
+    }
+  };
+
   // Ẩn header khi modal mở
   if (isActivateModalOpen || isUserProfileModalOpen) {
     return null; 
@@ -258,21 +285,26 @@ const Header = () => {
 
   return (
     <>
-      <header className="h-16 flex items-center px-6 relative z-[30]">
+      <header className="h-16 flex items-center px-4 md:px-6 relative z-[30]">
         {/* Backdrop blur và gradient background */}
         <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-green-50/70 backdrop-blur-md border-b border-white/40 -z-10"></div>
         
+        {/* Không gian trống cho nút menu trên mobile */}
+        <div className="w-8 lg:hidden"></div>
+        
         {/* Thanh tìm kiếm trong header */}
-        <div className="flex-1 relative mx-auto max-w-[832px]" ref={searchRef}>
+        <div className={`flex-1 relative mx-auto max-w-[832px] transition-all duration-300 
+                       ${isSearchExpanded ? 'scale-100 w-full' : 'md:scale-100 scale-0 w-0 md:w-full'}`} 
+             ref={searchRef}>
           <form onSubmit={handleSearch}>
-            <div className="ml-[-140px] mr-[130px] relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                <Search className="w-5 h-5 text-green-500" />
+            <div className="relative ml-0 md:ml-[-20px] md:mr-[34px]">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 md:pl-4 pointer-events-none">
+                <Search className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
               </div>
               <input
                 type="text"
-                className="pl-12 pr-12 py-3 w-full border border-green-100 bg-white/80 backdrop-blur-sm rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all shadow-md hover:shadow-lg hover:bg-white/90"
-                placeholder="Tìm kiếm mã sách, ID đề, chương..."
+                className="pl-9 md:pl-12 pr-8 md:pr-12 py-2 md:py-3 w-full border border-green-100 bg-white/80 backdrop-blur-sm rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all shadow-md hover:shadow-lg hover:bg-white/90 text-sm md:text-base"
+                placeholder="Tìm kiếm mã sách, ID đề..."
                 value={searchTerm}
                 onChange={handleSearchInputChange}
                 onFocus={handleSearchFocus}
@@ -280,10 +312,10 @@ const Header = () => {
               {searchTerm && (
                 <button 
                   type="button" 
-                  className="absolute inset-y-0 right-0 flex items-center pr-4"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 md:pr-4"
                   onClick={clearSearch}
                 >
-                  <X className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                  <X className="w-4 h-4 md:w-5 md:h-5 text-gray-400 hover:text-gray-600 transition-colors" />
                 </button>
               )}
             </div>
@@ -291,20 +323,20 @@ const Header = () => {
           
           {/* Dropdown kết quả tìm kiếm - z-index cao hơn */}
           {showResults && (
-            <div className="fixed ml-[-200px] inset-0 bg-black/5 z-[9998]" onClick={() => setShowResults(false)}>
+            <div className="fixed ml-0 md:ml-[-200px] inset-0 bg-black/5 z-[9998]" onClick={() => setShowResults(false)}>
               <div 
-                className="absolute top-16 left-1/2 -translate-x-1/2 mt-4 mx-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-green-50 overflow-hidden z-[9999] w-full max-w-[832px]"
+                className="absolute top-16 left-1/2 -translate-x-1/2 mt-1 md:mt-4 mx-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-green-50 overflow-hidden z-[9999] w-[95%] md:w-full max-w-[832px]"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="p-3 border-b border-gray-100 flex items-center">
+                <div className="p-2 md:p-3 border-b border-gray-100 flex items-center">
                   <div className="flex-1 relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                      <Search className="w-5 h-5 text-green-500" />
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 md:pl-4 pointer-events-none">
+                      <Search className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
                     </div>
                     <input
                       type="text"
-                      className="pl-12 pr-12 py-3 w-full border border-green-100 bg-white/70 backdrop-blur-sm rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all shadow-inner"
-                      placeholder="Tìm kiếm mã sách, ID đề, chương..."
+                      className="pl-9 md:pl-12 pr-8 md:pr-12 py-2 md:py-3 w-full border border-green-100 bg-white/70 backdrop-blur-sm rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all shadow-inner text-sm md:text-base"
+                      placeholder="Tìm kiếm mã sách, ID đề..."
                       value={searchTerm}
                       onChange={handleSearchInputChange}
                       autoFocus
@@ -312,10 +344,10 @@ const Header = () => {
                     {searchTerm && (
                       <button 
                         type="button" 
-                        className="absolute inset-y-0 right-0 flex items-center pr-4"
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 md:pr-4"
                         onClick={clearSearch}
                       >
-                        <X className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                        <X className="w-4 h-4 md:w-5 md:h-5 text-gray-400 hover:text-gray-600 transition-colors" />
                       </button>
                     )}
                   </div>
@@ -323,9 +355,9 @@ const Header = () => {
 
                 {/* Tabs phân loại kết quả */}
                 {!isSearching && searchResults.length > 0 && (
-                  <div className="flex border-b border-gray-100">
+                  <div className="flex border-b border-gray-100 overflow-x-auto">
                     <button
-                      className={`flex items-center py-2 px-4 text-sm font-medium ${
+                      className={`flex items-center py-1.5 md:py-2 px-3 md:px-4 text-xs md:text-sm font-medium ${
                         activeTab === 'all' 
                           ? 'text-green-600 border-b-2 border-green-500' 
                           : 'text-gray-500 hover:text-gray-700'
@@ -333,23 +365,23 @@ const Header = () => {
                       onClick={() => setActiveTab('all')}
                     >
                       <span>Tất cả</span>
-                      <span className="ml-1.5 bg-gray-100 text-gray-700 rounded-full px-2 py-0.5 text-xs">
+                      <span className="ml-1 md:ml-1.5 bg-gray-100 text-gray-700 rounded-full px-1.5 md:px-2 py-0.5 text-xs">
                         {resultCounts.total}
                       </span>
                     </button>
                     
                     {resultCounts.books > 0 && (
                       <button
-                        className={`flex items-center py-2 px-4 text-sm font-medium ${
+                        className={`flex items-center py-1.5 md:py-2 px-3 md:px-4 text-xs md:text-sm font-medium ${
                           activeTab === 'books' 
                             ? 'text-green-600 border-b-2 border-green-500' 
                             : 'text-gray-500 hover:text-gray-700'
                         }`}
                         onClick={() => setActiveTab('books')}
                       >
-                        <Book className="w-3.5 h-3.5 mr-1" />
+                        <Book className="w-3 h-3 md:w-3.5 md:h-3.5 mr-1" />
                         <span>Sách</span>
-                        <span className="ml-1.5 bg-gray-100 text-gray-700 rounded-full px-2 py-0.5 text-xs">
+                        <span className="ml-1 md:ml-1.5 bg-gray-100 text-gray-700 rounded-full px-1.5 md:px-2 py-0.5 text-xs">
                           {resultCounts.books}
                         </span>
                       </button>
@@ -357,16 +389,16 @@ const Header = () => {
                     
                     {resultCounts.menuBooks > 0 && (
                       <button
-                        className={`flex items-center py-2 px-4 text-sm font-medium ${
+                        className={`flex items-center py-1.5 md:py-2 px-3 md:px-4 text-xs md:text-sm font-medium ${
                           activeTab === 'chapters' 
                             ? 'text-green-600 border-b-2 border-green-500' 
                             : 'text-gray-500 hover:text-gray-700'
                         }`}
                         onClick={() => setActiveTab('chapters')}
                       >
-                        <BookOpen className="w-3.5 h-3.5 mr-1" />
+                        <BookOpen className="w-3 h-3 md:w-3.5 md:h-3.5 mr-1" />
                         <span>Chương/Đề</span>
-                        <span className="ml-1.5 bg-gray-100 text-gray-700 rounded-full px-2 py-0.5 text-xs">
+                        <span className="ml-1 md:ml-1.5 bg-gray-100 text-gray-700 rounded-full px-1.5 md:px-2 py-0.5 text-xs">
                           {resultCounts.menuBooks}
                         </span>
                       </button>
@@ -374,16 +406,16 @@ const Header = () => {
                     
                     {resultCounts.questions > 0 && (
                       <button
-                        className={`flex items-center py-2 px-4 text-sm font-medium ${
+                        className={`flex items-center py-1.5 md:py-2 px-3 md:px-4 text-xs md:text-sm font-medium ${
                           activeTab === 'questions' 
                             ? 'text-green-600 border-b-2 border-green-500' 
                             : 'text-gray-500 hover:text-gray-700'
                         }`}
                         onClick={() => setActiveTab('questions')}
                       >
-                        <HelpCircle className="w-3.5 h-3.5 mr-1" />
+                        <HelpCircle className="w-3 h-3 md:w-3.5 md:h-3.5 mr-1" />
                         <span>Câu hỏi</span>
-                        <span className="ml-1.5 bg-gray-100 text-gray-700 rounded-full px-2 py-0.5 text-xs">
+                        <span className="ml-1 md:ml-1.5 bg-gray-100 text-gray-700 rounded-full px-1.5 md:px-2 py-0.5 text-xs">
                           {resultCounts.questions}
                         </span>
                       </button>
@@ -391,18 +423,19 @@ const Header = () => {
                   </div>
                 )}
                 
+                {/* Kết quả tìm kiếm - responsive */}
                 <div className="max-h-[calc(100vh-150px)] overflow-y-auto">
                   {/* Loading indicator */}
                   {isSearching && (
-                    <div className="p-5 text-center text-gray-500">
-                      <div className="animate-spin inline-block w-5 h-5 border-2 border-t-green-500 border-r-green-500 border-b-transparent border-l-transparent rounded-full mr-2"></div>
+                    <div className="p-3 md:p-5 text-center text-gray-500 text-sm md:text-base">
+                      <div className="animate-spin inline-block w-4 h-4 md:w-5 md:h-5 border-2 border-t-green-500 border-r-green-500 border-b-transparent border-l-transparent rounded-full mr-2"></div>
                       Đang tìm kiếm...
                     </div>
                   )}
                   
                   {/* Result count */}
                   {!isSearching && filteredResults.length > 0 && (
-                    <div className="px-4 py-2 text-sm text-gray-500">
+                    <div className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-gray-500">
                       {filteredResults.length} kết quả {activeTab !== 'all' && `cho ${
                         activeTab === 'books' ? 'sách' : 
                         activeTab === 'chapters' ? 'chương/đề' : 'câu hỏi'
@@ -412,27 +445,27 @@ const Header = () => {
                   
                   {/* Error message */}
                   {searchError && !isSearching && (
-                    <div className="p-5 text-center text-red-500">
+                    <div className="p-3 md:p-5 text-center text-red-500 text-sm md:text-base">
                       <p>{searchError}</p>
                     </div>
                   )}
                   
                   {/* Empty results */}
                   {!isSearching && !searchError && searchResults.length === 0 && !searchTerm && (
-                    <div className="p-5 text-center text-gray-500">
+                    <div className="p-3 md:p-5 text-center text-gray-500 text-sm md:text-base">
                       Nhập từ khóa để tìm kiếm
                     </div>
                   )}
                   
                   {!isSearching && !searchError && searchResults.length === 0 && searchTerm && (
-                    <div className="p-5 text-center text-gray-500">
+                    <div className="p-3 md:p-5 text-center text-gray-500 text-sm md:text-base">
                       Không tìm thấy kết quả nào phù hợp với "{searchTerm}"
                     </div>
                   )}
 
                   {/* Filtered empty results */}
                   {!isSearching && !searchError && searchResults.length > 0 && filteredResults.length === 0 && (
-                    <div className="p-5 text-center text-gray-500">
+                    <div className="p-3 md:p-5 text-center text-gray-500 text-sm md:text-base">
                       Không có kết quả nào thuộc loại {
                         activeTab === 'books' ? 'sách' : 
                         activeTab === 'chapters' ? 'chương/đề' : 'câu hỏi'
@@ -447,10 +480,10 @@ const Header = () => {
                         <li key={item.id} className="border-b border-gray-100 last:border-none">
                           <Link 
                             href={getNavigationUrl(item)}
-                            className="flex items-center px-4 py-3 hover:bg-green-50/50 transition-colors"
+                            className="flex items-center px-3 md:px-4 py-2 md:py-3 hover:bg-green-50/50 transition-colors"
                             onClick={() => setShowResults(false)}
                           >
-                            <div className="w-14 h-14 rounded-md overflow-hidden mr-3 bg-gray-100 flex-shrink-0 border border-gray-200 shadow-sm">
+                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-md overflow-hidden mr-2 md:mr-3 bg-gray-100 flex-shrink-0 border border-gray-200 shadow-sm">
                               {getImageUrl(item) ? (
                                 <Image 
                                   src={getImageUrl(item) as string} 
@@ -467,8 +500,8 @@ const Header = () => {
                               )}
                             </div>
                             <div className="flex-grow min-w-0">
-                              <h3 className="text-sm font-medium text-gray-900 line-clamp-1">{getTitle(item)}</h3>
-                              <div className="mt-1 text-xs text-gray-500 flex flex-wrap gap-1">
+                              <h3 className="text-xs md:text-sm font-medium text-gray-900 line-clamp-1">{getTitle(item)}</h3>
+                              <div className="mt-0.5 md:mt-1 text-[10px] md:text-xs text-gray-500 flex flex-wrap gap-1">
                                 {getSubInfo(item) && (
                                   <span className="inline-flex items-center">
                                     {getSubInfo(item)}
@@ -480,12 +513,12 @@ const Header = () => {
                             </div>
                             <div className="ml-2 flex-shrink-0">
                               {('active' in item && item.active) ? (
-                                <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                                <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-green-100 flex items-center justify-center">
+                                  <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-green-500"></div>
                                 </div>
                               ) : (
-                                <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
-                                  <div className="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
+                                <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-gray-100 flex items-center justify-center">
+                                  <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-gray-400"></div>
                                 </div>
                               )}
                             </div>
@@ -500,18 +533,26 @@ const Header = () => {
           )}
         </div>
 
+        {/* Nút tìm kiếm trên mobile */}
+        <button 
+          className={`md:hidden mr-2 p-2 rounded-full bg-white/70 backdrop-blur-sm shadow-sm border border-green-100 ${isSearchExpanded ? 'hidden' : 'block'}`}
+          onClick={toggleSearchExpanded}
+        >
+          <Search className="w-4 h-4 text-green-500" />
+        </button>
+
         {/* Right side */}
-        <div className="flex-none flex items-center space-x-5 ml-4">
-          <div className="relative p-2 rounded-full hover:bg-white/40 transition-all cursor-pointer">
-            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm"></div>
-            <Bell className="w-5 h-5 text-green-700" />
+        <div className={`flex-none flex items-center space-x-2 md:space-x-5 ml-auto ${isSearchExpanded ? 'hidden md:flex' : 'flex'}`}>
+          <div className="relative p-1.5 md:p-2 rounded-full hover:bg-white/40 transition-all cursor-pointer">
+            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full border-2 border-white shadow-sm"></div>
+            <Bell className="w-4 h-4 md:w-5 md:h-5 text-green-700" />
           </div>
           
           <div 
-            className="flex items-center cursor-pointer bg-white/30 rounded-full pl-1 pr-3 py-1 border border-green-100/50 shadow-sm hover:bg-white/50 transition-all duration-300"
+            className="flex items-center cursor-pointer bg-white/30 rounded-full pl-1 pr-2 md:pl-1 md:pr-3 py-1 border border-green-100/50 shadow-sm hover:bg-white/50 transition-all duration-300"
             onClick={handleOpenUserProfile}
           >
-            <div className="relative h-9 w-9 rounded-full overflow-hidden mr-2 shadow-sm border border-white/80">
+            <div className="relative h-7 w-7 md:h-9 md:w-9 rounded-full overflow-hidden mr-1 md:mr-2 shadow-sm border border-white/80">
               {userData?.avatar ? (
                 <Image 
                   src={userData.avatar} 
@@ -526,12 +567,22 @@ const Header = () => {
                 </div>
               )}
             </div>
-            <span className="text-sm font-medium text-gray-800 mr-1">
+            <span className="text-xs md:text-sm font-medium text-gray-800 mr-0.5 md:mr-1 hidden sm:block">
               {localStorage.getItem('userFullName') ? localStorage.getItem('userFullName') : 'User'}
             </span>
-            <ChevronDown className="w-4 h-4 text-green-600" />
+            <ChevronDown className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
           </div>
         </div>
+
+        {/* Nút đóng thanh tìm kiếm trên mobile */}
+        {isSearchExpanded && (
+          <button 
+            className="md:hidden ml-2 p-2 rounded-full hover:bg-white/40"
+            onClick={toggleSearchExpanded}
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        )}
       </header>
     </>
   );

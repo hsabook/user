@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,14 +11,79 @@ import {
   LogOut,
   Plus,
   Home,
+  Video,
+  CalendarDays,
+  GraduationCap,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useModal } from "@/contexts/ModalContext";
+import { usePathname, useRouter } from 'next/navigation';
 
 const Sidebar = () => {
   const [activeLink, setActiveLink] = useState("/books");
   const { openActivateModal } = useModal();
+  const [userFullName, setUserFullName] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const pathname = usePathname();
+  const router = useRouter();
   
+  // Hàm cập nhật giá trị từ localStorage (trích xuất từ phần dispatchStorageEvent được sửa)
+  const getUsernameFromStorage = () => {
+    if (typeof window !== 'undefined') {
+      setUsername(localStorage.getItem('username') || '');
+      setUserFullName(localStorage.getItem('userFullName') || 'Khách');
+      setUserAvatar(localStorage.getItem('userAvatar') || null);
+    }
+  };
+  
+  // Lắng nghe sự kiện thay đổi từ localStorage
+  useEffect(() => {
+    // Gọi lần đầu khi component mount
+    getUsernameFromStorage();
+    
+    // Lắng nghe sự kiện từ window
+    const handleStorageChange = () => {
+      getUsernameFromStorage();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('localstorage-changed', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localstorage-changed', handleStorageChange);
+    };
+  }, []);
+  
+  const handleLogout = () => {
+    // Clear localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userFullName');
+      localStorage.removeItem('userAvatar');
+      
+      // Redirect về trang login
+      router.push('/login');
+    }
+  };
+  
+  const isActive = (path: string) => {
+    return pathname === path;
+  };
+  
+  const menuItems = [
+    { href: "/dashboard", icon: <Home className="w-5 h-5" />, text: "Trang chủ" },
+    { href: "/books", icon: <BookOpen className="w-5 h-5" />, text: "Sách của tôi" },
+    { href: "/courses", icon: <GraduationCap className="w-5 h-5" />, text: "Khóa học" },
+    { href: "/videos", icon: <Video className="w-5 h-5" />, text: "Video" },
+    { href: "/calendar", icon: <CalendarDays className="w-5 h-5" />, text: "Lịch học" },
+    { href: "/resources", icon: <Layers className="w-5 h-5" />, text: "Tài nguyên" },
+  ];
+
   return (
     <div className="w-60 min-h-screen flex flex-col relative z-10">
       {/* Backdrop blur và gradient background */}
@@ -43,84 +108,48 @@ const Sidebar = () => {
       {/* User Profile */}
       <div className="px-5 py-4 flex items-center mb-6">
         <div className="w-11 h-11 rounded-full bg-gradient-to-br from-green-200 to-green-100 overflow-hidden mr-3 border-2 border-white shadow-md">
-          <Image src="/avatar.png" alt="User" width={44} height={44} />
+          {userAvatar ? (
+            <Image 
+              src={userAvatar} 
+              alt={userFullName || 'User avatar'} 
+              width={44} 
+              height={44} 
+              style={{ objectFit: 'cover' }} 
+              className="w-full h-full"
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white">
+              {userFullName ? userFullName.charAt(0).toUpperCase() : 'U'}
+            </div>
+          )}
         </div>
-        <span className="font-medium text-gray-800">{localStorage.getItem('userFullName') ?? 'User'}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-800 truncate">{userFullName}</p>
+          <p className="text-xs text-gray-500 truncate">@{username || 'username'}</p>
+        </div>
       </div>
 
       {/* Navigation Menu */}
       <nav className="flex-grow px-3">
         <ul>
-          <li className="mb-2">
-            <Link
-              href="/"
-              className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
-                activeLink === "/" 
-                  ? "bg-white/70 text-green-700 shadow-sm border border-green-100/50" 
-                  : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
-              }`}
-              onClick={() => setActiveLink("/")}
-            >
-              <Home className={`w-5 h-5 mr-3 ${activeLink === "/" ? "text-green-600" : ""}`} />
-              <span>Trang chủ</span>
-            </Link>
-          </li>
-          <li className="mb-2">
-            <Link
-              href="/"
-              className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
-                activeLink === "/courses" 
-                  ? "bg-white/70 text-green-700 shadow-sm border border-green-100/50" 
-                  : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
-              }`}
-              onClick={() => setActiveLink("/courses")}
-            >
-              <BookOpen className={`w-5 h-5 mr-3 ${activeLink === "/courses" ? "text-green-600" : ""}`} />
-              <span >Khóa học (Soon)</span>
-            </Link>
-          </li>
-          {/* <li className="mb-2">
-            <Link
-              href="/books"
-              className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
-                activeLink === "/books" 
-                  ? "bg-gradient-to-r from-green-50/80 to-green-100/60 text-green-700 shadow-sm border border-green-100/50" 
-                  : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
-              }`}
-              onClick={() => setActiveLink("/books")}
-            >
-              <Book className={`w-5 h-5 mr-3 ${activeLink === "/books" ? "text-green-600" : ""}`} />
-              <span>Tất cả sách</span>
-            </Link>
-          </li> */}
-          <li className="mb-2">
-            <Link
-              href="/activated-books"
-              className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
-                activeLink === "/activated-books" 
-                  ? "bg-gradient-to-r from-green-50/80 to-green-100/60 text-green-700 shadow-sm border border-green-100/50" 
-                  : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
-              }`}
-              onClick={() => setActiveLink("/activated-books")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`w-5 h-5 mr-3 ${activeLink === "/activated-books" ? "text-green-600" : ""}`}
+          {menuItems.map((item) => (
+            <li key={item.href} className="mb-2">
+              <Link
+                href={item.href}
+                className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
+                  isActive(item.href)
+                    ? "bg-white/70 text-green-700 shadow-sm border border-green-100/50"
+                    : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
+                }`}
+                onClick={() => setActiveLink(item.href)}
               >
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                <path d="M9 10h6" />
-                <path d="M12 7v6" />
-              </svg>
-              <span>Sách đã kích hoạt</span>
-            </Link>
-          </li>
+                <span className={`mr-3 ${isActive(item.href) ? "text-green-600" : ""}`}>
+                  {item.icon}
+                </span>
+                <span>{item.text}</span>
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
 
@@ -137,7 +166,10 @@ const Sidebar = () => {
 
       {/* Logout */}
       <div className="p-5 mt-2">
-        <button className="flex items-center text-gray-600 hover:text-green-800 transition-colors duration-300 mx-1">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center text-gray-600 hover:text-green-800 transition-colors duration-300 mx-1"
+        >
           <LogOut className="w-5 h-5 mr-3" />
           <span>Đăng xuất</span>
         </button>
