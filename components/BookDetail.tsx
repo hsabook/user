@@ -11,8 +11,10 @@ import {
   Check,
   Loader2,
   FileText,
+  Plus,
 } from "lucide-react";
 import useBookContent, { MenuBookItem, MenuBookChild } from "@/hooks/useBookContent";
+import { useModal } from "@/contexts/ModalContext";
 
 interface Author {
   id: string;
@@ -55,6 +57,7 @@ const BookDetail = ({
   >({});
   const { bookContent, isLoading, error, fetchBookContent } = useBookContent();
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+  const { openActivateModal } = useModal();
 
   useEffect(() => {
     if (id) {
@@ -119,6 +122,9 @@ const BookDetail = ({
         );
     }
   };
+
+  // Kiểm tra xem sách có phải của người dùng không
+  const isMyBook = bookContent.length > 0 && bookContent[0]?.is_mybook !== false;
 
   return (
     <>
@@ -224,11 +230,13 @@ const BookDetail = ({
 
       {/* Nội dung Tab */}
       <div className="grid grid-cols-1 gap-6">
-        {/* Tab 1: Nội dung sách */}
+        {/* Tab 1: Nội dung sách hoặc nút kích hoạt */}
         <div className="w-full">
           <div className="border border-green-100 rounded-xl overflow-hidden shadow-sm bg-white bg-opacity-90 backdrop-filter backdrop-blur-md">
             <div className="bg-gradient-to-r from-green-50 to-green-100 py-3 px-4 border-b border-green-100">
-              <h2 className="font-medium text-green-800">Tất cả nội dung của sách</h2>
+              <h2 className="font-medium text-green-800">
+                {!isInitialLoading && !isLoading && !isMyBook ? "Kích hoạt sách để xem nội dung" : "Tất cả nội dung của sách"}
+              </h2>
             </div>
             
             {isLoading || isInitialLoading ? (
@@ -252,6 +260,23 @@ const BookDetail = ({
                   className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
                 >
                   Thử lại
+                </button>
+              </div>
+            ) : !isMyBook ? (
+              <div className="p-8 flex flex-col items-center justify-center">
+                <div className="w-20 h-20 mx-auto rounded-full bg-green-50 flex items-center justify-center mb-4 border border-green-100">
+                  <BookOpen className="h-10 w-10 text-green-500" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">Sách chưa được kích hoạt</h3>
+                <p className="text-gray-600 text-center mb-6 max-w-md">
+                  Để xem nội dung đầy đủ của sách, bạn cần nhập mã kích hoạt từ thẻ cào hoặc mã được cung cấp khi mua sách.
+                </p>
+                <button 
+                  onClick={openActivateModal}
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl font-medium shadow hover:shadow-md transition-all"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Kích hoạt sách ngay
                 </button>
               </div>
             ) : bookContent.length === 0 ? (

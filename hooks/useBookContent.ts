@@ -34,6 +34,7 @@ export interface MenuBookItem {
   active: boolean;
   order: number;
   exam_id: string | null;
+  is_mybook?: boolean;
   exam: {
     id: string;
     file_download: string | null;
