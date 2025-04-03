@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, Bell, User, ChevronDown, Book, FileText, X, BookOpen, HelpCircle, Video } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, Book, FileText, X, BookOpen, HelpCircle, Video, Menu } from 'lucide-react';
 import Image from 'next/image';
 import UserProfileModal from '@/components/UserProfileModal';
 import { useUserInfo } from '@/hooks/useUserInfo';
@@ -138,7 +138,12 @@ const getSubInfo = (item: TaggedSearchResultItem): string => {
   return '';
 };
 
-const Header = () => {
+// Thêm props để nhận hàm toggleSidebar từ ClientLayout
+interface HeaderProps {
+  toggleSidebar?: () => void;
+}
+
+const Header = ({ toggleSidebar }: HeaderProps) => {
   const { userData: apiUserData, loading, error, fetchUserInfo, updateUserInfo } = useUserInfo();
   const { search, searchResults, resultCounts, isLoading: isSearching, error: searchError } = useSearch();
   const [searchTerm, setSearchTerm] = useState('');
@@ -289,15 +294,23 @@ const Header = () => {
         {/* Backdrop blur và gradient background */}
         <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-green-50/70 backdrop-blur-md border-b border-white/40 -z-10"></div>
         
-        {/* Không gian trống cho nút menu trên mobile */}
-        <div className="w-8 lg:hidden"></div>
+        {/* Hamburger menu - chỉ hiển thị trên mobile */}
+        <div className="lg:hidden mr-3">
+          <button 
+            className="p-2 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm shadow-sm border border-green-100/50 transition-all"
+            onClick={toggleSidebar}
+            aria-label="Mở/đóng menu"
+          >
+            <Menu className="w-5 h-5 text-green-600" />
+          </button>
+        </div>
         
         {/* Thanh tìm kiếm trong header */}
         <div className={`flex-1 relative mx-auto max-w-[832px] transition-all duration-300 
                        ${isSearchExpanded ? 'scale-100 w-full' : 'md:scale-100 scale-0 w-0 md:w-full'}`} 
              ref={searchRef}>
           <form onSubmit={handleSearch}>
-            <div className="relative ml-0 md:ml-[-20px] md:mr-[34px]">
+            <div className="relative ml-0 md:ml-[-34px] md:mr-[34px]">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 md:pl-4 pointer-events-none">
                 <Search className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
               </div>
