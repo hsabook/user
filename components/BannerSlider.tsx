@@ -70,7 +70,7 @@ const BannerSlider = () => {
   }, [bannerData, nextSlide, isHovering]);
 
   if (loading) {
-    return <div className="h-48 bg-gray-100 animate-pulse rounded-lg mb-6"></div>;
+    return <div className="h-48 bg-gray-100/50 backdrop-blur-sm animate-pulse rounded-2xl glassmorphism"></div>;
   }
 
   if (error || !bannerData || bannerData.data.length === 0) {
@@ -81,7 +81,7 @@ const BannerSlider = () => {
 
   return (
     <div 
-      className="relative w-full h-48 rounded-lg overflow-hidden mb-6 group shadow-md"
+      className="relative w-full h-48 rounded-2xl overflow-hidden group"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -104,7 +104,7 @@ const BannerSlider = () => {
       {/* Navigation arrows */}
       <button 
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); prevSlide(); }} 
-        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-md"
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-5 h-5 text-gray-800" />
@@ -112,7 +112,7 @@ const BannerSlider = () => {
       
       <button 
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextSlide(); }} 
-        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-md"
         aria-label="Next slide"
       >
         <ChevronRight className="w-5 h-5 text-gray-800" />
@@ -124,8 +124,8 @@ const BannerSlider = () => {
           <button
             key={index}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentIndex(index); }}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex ? 'bg-white w-4' : 'bg-white/60'
+            className={`h-2 rounded-full transition-all duration-300 ${
+              index === currentIndex ? 'bg-white w-4' : 'bg-white/60 w-2'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
@@ -133,7 +133,7 @@ const BannerSlider = () => {
       </div>
 
       {/* Slide counter */}
-      <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+      <div className="absolute bottom-2 right-2 bg-black/30 backdrop-blur-md text-white px-2 py-1 rounded-md text-xs">
         {currentIndex + 1}/{bannerData.data.length}
       </div>
     </div>

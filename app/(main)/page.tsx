@@ -21,7 +21,7 @@ export default function Home() {
         <div className="col-span-1">
           <Calendar />
           <div className="mt-8">
-            <QuestionsSection />
+            {/* <QuestionsSection /> */}
             <PopularCourses />
           </div>
         </div>

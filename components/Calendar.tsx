@@ -1,75 +1,131 @@
+'use client'
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+type CalendarDay = {
+  day: number;
+  isToday: boolean;
+  isPast: boolean;
+  hasEvent: boolean;
+};
+
 const Calendar = () => {
-  const currentMonth = 'February 2021';
-  const weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-  
-  // Calendar data for February 2021
-  const days = [
-    { day: 1, isToday: false, isPast: false, hasEvent: false },
-    { day: 2, isToday: false, isPast: false, hasEvent: false },
-    { day: 3, isToday: false, isPast: false, hasEvent: false },
-    { day: 4, isToday: false, isPast: false, hasEvent: false },
-    { day: 5, isToday: false, isPast: false, hasEvent: false },
-    { day: 6, isToday: false, isPast: false, hasEvent: false },
-    { day: 7, isToday: false, isPast: false, hasEvent: false },
-    { day: 8, isToday: false, isPast: false, hasEvent: false },
-    { day: 9, isToday: false, isPast: false, hasEvent: false },
-    { day: 10, isToday: false, isPast: false, hasEvent: false },
-    { day: 11, isToday: false, isPast: false, hasEvent: false },
-    { day: 12, isToday: false, isPast: false, hasEvent: false },
-    { day: 13, isToday: false, isPast: false, hasEvent: false },
-    { day: 14, isToday: false, isPast: false, hasEvent: false },
-    { day: 15, isToday: false, isPast: false, hasEvent: false },
-    { day: 16, isToday: false, isPast: false, hasEvent: false },
-    { day: 17, isToday: false, isPast: false, hasEvent: false },
-    { day: 18, isToday: false, isPast: false, hasEvent: false },
-    { day: 19, isToday: false, isPast: false, hasEvent: false },
-    { day: 20, isToday: false, isPast: false, hasEvent: false },
-    { day: 21, isToday: false, isPast: false, hasEvent: false },
-    { day: 22, isToday: false, isPast: false, hasEvent: false },
-    { day: 23, isToday: true, isPast: false, hasEvent: true },
-    { day: 24, isToday: false, isPast: false, hasEvent: false },
-    { day: 25, isToday: false, isPast: false, hasEvent: false },
-    { day: 26, isToday: false, isPast: false, hasEvent: false },
-    { day: 27, isToday: false, isPast: false, hasEvent: true },
-    { day: 28, isToday: false, isPast: false, hasEvent: false },
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [days, setDays] = useState<CalendarDay[]>([]);
+  const [nextMonthDays, setNextMonthDays] = useState<CalendarDay[]>([]);
+
+  // Tên tháng tiếng Việt
+  const monthNames = [
+    'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+    'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
   ];
   
-  // March days for display
-  const nextMonthDays = [
-    { day: 1, isToday: false, isPast: false, hasEvent: false },
-    { day: 2, isToday: false, isPast: false, hasEvent: false },
-    { day: 3, isToday: false, isPast: false, hasEvent: false },
-    { day: 4, isToday: false, isPast: false, hasEvent: false },
-    { day: 5, isToday: false, isPast: false, hasEvent: false }
-  ];
+  // Thứ trong tuần bằng tiếng Việt
+  const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+  
+  // Lấy tiêu đề tháng và năm tiếng việt
+  const getMonthTitle = (date: Date) => {
+    return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  // Tháng hiện tại
+  const currentMonth = getMonthTitle(currentDate);
+
+  // Tạo dữ liệu lịch khi currentDate thay đổi
+  useEffect(() => {
+    const generateCalendarData = () => {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      // Ngày hiện tại
+      const today = new Date();
+      
+      // Số ngày trong tháng hiện tại
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      // Tạo mảng ngày trong tháng
+      const daysArray: CalendarDay[] = [];
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dayDate = new Date(year, month, i);
+        daysArray.push({
+          day: i,
+          isToday: 
+            today.getDate() === i && 
+            today.getMonth() === month && 
+            today.getFullYear() === year,
+          isPast: dayDate < today,
+          // Chỉ để mô phỏng, thực tế sẽ lấy từ dữ liệu sự kiện
+          hasEvent: false
+        });
+      }
+      setDays(daysArray);
+      
+      // Những ngày của tháng tiếp theo để hiển thị đủ lưới
+      const lastDay = new Date(year, month, daysInMonth);
+      let remainingCells = 7 - (lastDay.getDay() || 7) + 1;
+      if (remainingCells === 8) remainingCells = 1;
+      
+      const nextMonthDaysArray: CalendarDay[] = [];
+      for (let i = 1; i <= remainingCells; i++) {
+        nextMonthDaysArray.push({
+          day: i,
+          isToday: false,
+          isPast: false,
+          hasEvent: false
+        });
+      }
+      setNextMonthDays(nextMonthDaysArray);
+    };
+    
+    generateCalendarData();
+  }, [currentDate]);
+
+  // Đi đến tháng trước
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+  
+  // Đi đến tháng sau
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
   
   /**
-   * Get CSS classes for calendar day cell
+   * Lấy CSS classes cho ô ngày
    */
-  const getDayClasses = (day: { day: number; isToday: boolean; isPast: boolean; hasEvent: boolean }) => {
-    let classes = 'w-8 h-8 flex items-center justify-center rounded-full text-sm';
+  const getDayClasses = (day: CalendarDay) => {
+    let classes = 'calendar-day';
     
     if (day.isToday) {
-      classes += ' bg-green-500 text-white';
+      classes += ' today';
     } else if (day.hasEvent) {
-      classes += ' bg-gray-200';
+      classes += ' event';
+    }
+    
+    if (day.isPast && !day.isToday) {
+      classes += ' past';
     }
     
     return classes;
   };
 
   return (
-    <div className="border rounded-lg p-4 bg-white">
+    <div className="sidebar-section p-5">
+      <div className="dot-pattern"></div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-medium">{currentMonth}</h2>
         <div className="flex space-x-2">
-          <button className="p-1 rounded hover:bg-gray-100">
-            <ChevronLeft className="w-4 h-4 text-gray-500" />
+          <button 
+            className="p-1 rounded-full hover:bg-white/40 transition-colors"
+            onClick={goToPreviousMonth}
+          >
+            <ChevronLeft className="w-4 h-4 text-gray-600" />
           </button>
-          <button className="p-1 rounded hover:bg-gray-100">
-            <ChevronRight className="w-4 h-4 text-gray-500" />
+          <button 
+            className="p-1 rounded-full hover:bg-white/40 transition-colors"
+            onClick={goToNextMonth}
+          >
+            <ChevronRight className="w-4 h-4 text-gray-600" />
           </button>
         </div>
       </div>
@@ -77,7 +133,7 @@ const Calendar = () => {
       <div className="grid grid-cols-7 gap-2">
         {/* Weekday headers */}
         {weekdays.map((day, index) => (
-          <div key={index} className="text-center text-sm font-medium text-gray-500">
+          <div key={index} className="text-center text-sm font-medium text-gray-600">
             {day}
           </div>
         ))}
@@ -94,7 +150,7 @@ const Calendar = () => {
         {/* Next month days */}
         {nextMonthDays.map((day, index) => (
           <div key={`next-${index}`} className="text-center">
-            <div className="w-8 h-8 flex items-center justify-center rounded-full text-sm text-gray-400">
+            <div className="calendar-day past">
               {day.day}
             </div>
           </div>

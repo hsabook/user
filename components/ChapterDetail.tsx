@@ -6,6 +6,7 @@ import { FileText, Clock, BookOpen, MessageCircle, ThumbsUp, Send, Image as Imag
 import Link from "next/link";
 import { mockData } from "@/lib/mockData";
 import useChapter, { ChapterData } from "@/hooks/useChapter";
+import ExamQuestionList from "./ExamQuestionList";
 
 interface Comment {
   id: string;
@@ -94,9 +95,9 @@ const ChapterDetail = ({ chapterId, comments = [] }: ChapterDetailComponentProps
           {/* Phần bên trái - Nội dung chính */}
           <div className="lg:col-span-2">
             {/* Phần header - Thông tin chương */}
-            <div className="bg-white p-5 rounded-lg shadow-sm mb-6">
+            <div className="bg-white p-5 rounded-xl shadow-sm mb-6">
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 flex-shrink-0 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <div className="w-16 h-16 flex-shrink-0 bg-yellow-100 rounded-xl flex items-center justify-center">
                   <FileText className="h-8 w-8 text-yellow-600" />
                 </div>
                 <div>
@@ -147,7 +148,7 @@ const ChapterDetail = ({ chapterId, comments = [] }: ChapterDetailComponentProps
             </div>
 
             {/* Tab content */}
-            <div className="bg-white p-5 rounded-lg shadow-sm">
+            <div className="bg-white p-5 rounded-xl shadow-sm">
               {activeTab === "content" ? (
                 <div>
                   {/* Cover image */}
@@ -235,7 +236,7 @@ const ChapterDetail = ({ chapterId, comments = [] }: ChapterDetailComponentProps
                   {/* Thông tin chi tiết */}
                   <div className="mt-8 pt-6 border-t border-gray-100">
                     <h3 className="text-lg font-medium text-gray-800 mb-4">Thông tin chi tiết</h3>
-                    <div className="bg-gray-50 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-xl p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                           <FileText className="h-5 w-5 text-blue-600" />
@@ -275,7 +276,7 @@ const ChapterDetail = ({ chapterId, comments = [] }: ChapterDetailComponentProps
                         <div>
                           <p className="text-xs text-gray-500">Thuộc sách</p>
                           <Link href={`/books/${chapter.book_id}`} className="font-medium text-blue-600 hover:text-blue-800 hover:underline">
-                            {chapter?.book.name}
+                            {chapter?.book?.name || "Không có thông tin sách"}
                           </Link>
                         </div>
                       </div>
@@ -303,24 +304,12 @@ const ChapterDetail = ({ chapterId, comments = [] }: ChapterDetailComponentProps
                 <div className="prose max-w-none">
                   {/* Nội dung đáp án sẽ được hiển thị ở tab này */}
                   {chapter.exam ? (
-                    <div>
-                      <h3>Bài kiểm tra</h3>
-                      <p>ID bài kiểm tra: {chapter.exam.id}</p>
-                      {chapter.exam.file_download && (
-                        <div className="mt-4">
-                          <a 
-                            href={chapter.exam.file_download} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
-                          >
-                            Tải xuống đáp án
-                          </a>
-                        </div>
-                      )}
-                    </div>
+                    <ExamQuestionList exam={chapter.exam} />
                   ) : (
-                    <p className="text-gray-500 flex justify-center items-center h-full text-lg font-medium">Chương này không có bài kiểm tra hoặc đáp án đính kèm.</p>
+                    <div className="text-center py-8 text-gray-500 flex flex-col items-center rounded-xl border border-gray-200 bg-white p-6">
+                      <FileText className="h-12 w-12 text-gray-300 mb-2" />
+                      <p className="text-gray-500">Chương này không có bài kiểm tra hoặc đáp án đính kèm.</p>
+                    </div>
                   )}
                 </div>
               )}
@@ -330,7 +319,7 @@ const ChapterDetail = ({ chapterId, comments = [] }: ChapterDetailComponentProps
           {/* Phần bên phải - Thống kê và bình luận */}
           <div className="lg:col-span-1">
             {/* Stats */}
-            <div className="bg-white p-5 rounded-lg shadow-sm mb-6 flex justify-around">
+            <div className="bg-white p-5 rounded-xl shadow-sm mb-6 flex justify-around">
               <div className="flex items-center">
                 <BookOpen className="w-5 h-5 text-yellow-500 mr-2" />
                 <div>
@@ -348,7 +337,7 @@ const ChapterDetail = ({ chapterId, comments = [] }: ChapterDetailComponentProps
             </div>
 
             {/* Comments */}
-            <div className="bg-white p-5 rounded-lg shadow-sm">
+            <div className="bg-white p-5 rounded-xl shadow-sm">
               <h3 className="text-lg font-medium mb-4">Bình luận & Câu hỏi</h3>
 
               <div className="space-y-6">

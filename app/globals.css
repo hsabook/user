@@ -78,5 +78,84 @@
   }
   body {
     @apply bg-background text-foreground;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
   }
+}
+
+/* Glassmorphism styles */
+.glassmorphism {
+  @apply bg-white/30 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg;
+}
+
+.glassmorphism-light {
+  @apply bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl;
+}
+
+.glassmorphism-card {
+  @apply bg-white/40 backdrop-blur-md border border-white/20 rounded-xl shadow-md
+  hover:shadow-lg transition-all duration-300 hover:bg-white/50;
+}
+
+/* Sidebar section styling */
+.sidebar-section {
+  position: relative;
+  z-index: 10;
+  /* Soft gradient background for light mode */
+  background-image: linear-gradient(120deg, rgba(255,255,255,0.5) 0%, rgba(240,248,255,0.5) 100%);
+  @apply glassmorphism;
+}
+
+.sidebar-section-content {
+  @apply glassmorphism-light;
+}
+
+/* Animated dot background */
+.dot-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: -1;
+}
+
+/* Calendar day styling */
+.calendar-day {
+  @apply w-8 h-8 flex items-center justify-center rounded-full text-sm transition-all duration-200
+  hover:bg-white/50 hover:shadow-sm cursor-pointer;
+}
+
+.calendar-day.today {
+  @apply bg-green-500 text-white shadow-sm;
+}
+
+.calendar-day.event {
+  @apply bg-amber-100/70 text-amber-800 backdrop-blur-sm;
+}
+
+.calendar-day.past {
+  @apply text-gray-400;
+}
+
+/* Course item styling */
+.course-item {
+  @apply flex items-center p-3 border-b border-white/10 hover:bg-white/30 transition-all;
+}
+
+.course-item-image {
+  @apply w-10 h-10 bg-blue-100/50 rounded-lg overflow-hidden relative mr-3 shadow-sm;
+}
+
+.course-item-tag {
+  @apply px-2 py-0.5 rounded-md text-xs mr-1 backdrop-blur-sm;
+}
+
+.course-item-tag.subject {
+  @apply bg-blue-100/70 text-blue-800;
+}
+
+.course-item-tag.grade {
+  @apply bg-green-100/70 text-green-800;
 }

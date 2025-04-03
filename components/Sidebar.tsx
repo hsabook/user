@@ -12,18 +12,12 @@ import {
   Plus,
 } from "lucide-react";
 import ActivateIdModal from "./ActivateIdModal";
+import { toast } from "sonner";
+import { useModal } from "@/contexts/ModalContext";
 
 const Sidebar = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("/books");
-  
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  const { isActivateModalOpen, openActivateModal, closeActivateModal } = useModal();
   
   return (
     <div className="w-60 min-h-screen flex flex-col relative z-10">
@@ -85,7 +79,7 @@ const Sidebar = () => {
               <span>Khóa học</span>
             </Link>
           </li>
-          <li className="mb-2">
+          {/* <li className="mb-2">
             <Link
               href="/books"
               className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
@@ -95,7 +89,35 @@ const Sidebar = () => {
               }`}
               onClick={() => setActiveLink("/books")}
             >
-              <Book className="w-5 h-5 mr-3 text-green-600" />
+              <Book className={`w-5 h-5 mr-3 ${activeLink === "/books" ? "text-green-600" : ""}`} />
+              <span>Tất cả sách</span>
+            </Link>
+          </li> */}
+          <li className="mb-2">
+            <Link
+              href="/activated-books"
+              className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
+                activeLink === "/activated-books" 
+                  ? "bg-gradient-to-r from-green-50/80 to-green-100/60 text-green-700 shadow-sm border border-green-100/50" 
+                  : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
+              }`}
+              onClick={() => setActiveLink("/activated-books")}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`w-5 h-5 mr-3 ${activeLink === "/activated-books" ? "text-green-600" : ""}`}
+              >
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                <path d="M9 10h6" />
+                <path d="M12 7v6" />
+              </svg>
               <span>Sách đã kích hoạt</span>
             </Link>
           </li>
@@ -105,7 +127,7 @@ const Sidebar = () => {
       {/* Activate ID Button */}
       <div className="p-5">
         <button 
-          onClick={openModal} 
+          onClick={openActivateModal} 
           className="flex items-center justify-center w-full bg-gradient-to-r from-green-600 to-green-500 text-white py-3 px-4 rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-300 border border-green-400 hover:from-green-500 hover:to-green-400"
         >
           <Plus className="w-5 h-5 mr-2" />
@@ -113,7 +135,16 @@ const Sidebar = () => {
         </button>
       </div>
 
-      <ActivateIdModal isOpen={isModalOpen} onClose={closeModal} onSuccess={closeModal} />
+      <ActivateIdModal 
+        isOpen={isActivateModalOpen} 
+        onClose={closeActivateModal} 
+        onSuccess={() => {
+          toast.success("Sách đã được kích hoạt thành công", {
+            description: "Bạn có thể truy cập sách này trong thư viện của mình",
+          });
+          closeActivateModal();
+        }} 
+      />
 
       {/* Logout */}
       <div className="p-5 mt-2">

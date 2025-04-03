@@ -1,24 +1,29 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { X, BookOpen, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { activateBookCode } from "@/services/bookService";
+import { useModal } from "@/contexts/ModalContext";
 
 interface ActivateIdModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (data: any) => void;
+  onSuccess: () => void;
 }
 
-const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) => {
-  const [idSach, setIdSach] = useState("");
+const ActivateIdModal: React.FC<ActivateIdModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+}) => {
+  const [activationId, setActivationId] = useState("");
   const [activationCode, setActivationCode] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const { closeActivateModal } = useModal();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -36,7 +41,7 @@ const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) =
   }, [isOpen, onClose]);
 
   const resetForm = () => {
-    setIdSach("");
+    setActivationId("");
     setActivationCode("");
     setError(null);
   };
@@ -51,7 +56,7 @@ const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) =
     e.preventDefault();
     
     // Kiểm tra dữ liệu nhập
-    if (!idSach.trim()) {
+    if (!activationId.trim()) {
       setError("Vui lòng nhập ID sách");
       return;
     }
@@ -68,7 +73,7 @@ const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) =
       // Chuyển đổi bookCode sang số nếu có thể
       let bookCode: number;
       try {
-        bookCode = parseInt(idSach);
+        bookCode = parseInt(activationId);
         if (isNaN(bookCode)) {
           throw new Error("ID sách phải là số");
         }
@@ -88,7 +93,7 @@ const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) =
       
       // Gọi callback onSuccess nếu có
       if (onSuccess) {
-        onSuccess(result);
+        onSuccess();
       }
       
       // Đóng modal
@@ -107,25 +112,32 @@ const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) =
   
   // Hàm ngăn sự kiện click lan ra ngoài
   const stopPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-gradient-to-r from-green-400/20 via-blue-500/20 to-purple-600/20 backdrop-blur-md"
+      className="fixed inset-0 flex items-center justify-center p-4 z-[999] bg-gradient-to-r from-green-400/20 via-blue-500/20 to-purple-600/20 backdrop-blur-md"
+      onClick={onClose}
     >
       <div 
         ref={modalRef}
-        className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative p-8 border border-white/50"
+        className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative p-8 border border-white/50 z-[1000]"
         onClick={stopPropagation}
       >
         {/* Nút đóng ở góc phải trên cùng */}
         <button 
-          onClick={onClose}
+          onClick={(e) => {
+            e.preventDefault();
+            onClose();
+          }}
           className="absolute right-6 top-6 text-gray-600 hover:text-gray-900 transition-colors"
           aria-label="Đóng"
+          type="button"
         >
           <X size={22} />
         </button>
@@ -146,19 +158,18 @@ const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) =
         </div>
 
         <form onSubmit={handleSubmit} className="mt-5">
-          
           <div className="space-y-5">
             {/* ID sách */}
             <div className="text-center">
-              <label htmlFor="idSach" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="activationId" className="block text-sm font-medium text-gray-700 mb-2">
                 ID sách
               </label>
               <input
-                id="idSach"
-                name="idSach"
+                id="activationId"
+                name="activationId"
                 type="text"
-                value={idSach}
-                onChange={(e) => setIdSach(e.target.value)}
+                value={activationId}
+                onChange={(e) => setActivationId(e.target.value)}
                 className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all shadow-sm"
                 placeholder="Nhập ID sách (số)"
                 required
@@ -187,7 +198,10 @@ const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) =
           <div className="mt-8 grid grid-cols-2 gap-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={(e) => {
+                e.preventDefault();
+                onClose();
+              }}
               className="px-4 py-3 bg-gray-100/80 backdrop-blur-sm text-gray-700 font-medium rounded-xl hover:bg-gray-200/80 transition-all shadow-sm border border-gray-100"
             >
               Hủy bỏ

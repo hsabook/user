@@ -7,6 +7,7 @@ import UserProfileModal from '@/components/UserProfileModal';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import useSearch, { TaggedSearchResultItem } from '@/hooks/useSearch';
 import Link from 'next/link';
+import { useModal } from "@/contexts/ModalContext";
 
 // Định nghĩa interface cho dữ liệu API trả về
 interface ApiUserData {
@@ -28,6 +29,17 @@ interface LocalUserData {
   phone: string;
   bio: string;
   username: string;
+  avatar?: string | null;
+}
+
+// Định nghĩa interface cho UserProfileModal
+interface UserData {
+  fullName: string;
+  email: string;
+  phone: string;
+  bio: string;
+  username: string;
+  avatar?: string | null;
 }
 
 // Hàm để xác định loại kết quả tìm kiếm
@@ -135,15 +147,9 @@ const Header = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'books' | 'chapters' | 'questions'>('all');
   const searchRef = useRef<HTMLDivElement>(null);
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
-  
-  // State để lưu trữ dữ liệu người dùng ở định dạng phù hợp với UserProfileModal
-  const [localUserData, setLocalUserData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    bio: "",
-    username: ""
-  });
+  const profileRef = useRef<HTMLDivElement>(null);
+  const [userData, setUserData] = useState<LocalUserData | null>(null);
+  const { isActivateModalOpen } = useModal();
   
   // Lọc kết quả dựa vào tab đang active
   const filteredResults = searchResults.filter(item => {
@@ -160,6 +166,10 @@ const Header = () => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false);
       }
+
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileModalOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -171,12 +181,13 @@ const Header = () => {
   // Cập nhật localUserData khi apiUserData thay đổi
   useEffect(() => {
     if (apiUserData) {
-      setLocalUserData({
+      setUserData({
         fullName: apiUserData.full_name,
         email: apiUserData.email,
         phone: apiUserData.phone_number,
         bio: apiUserData.description || "",
-        username: apiUserData.username
+        username: apiUserData.username,
+        avatar: apiUserData.avatar
       });
     }
   }, [apiUserData]);
@@ -253,7 +264,7 @@ const Header = () => {
       await updateUserInfo(apiData);
       
       // Cập nhật dữ liệu local
-      setLocalUserData({...localUserData, ...data});
+      setUserData({...userData, ...data});
       
       return true;
     } catch (error) {
@@ -275,6 +286,10 @@ const Header = () => {
       search(searchTerm);
     }
   };
+
+  if (isActivateModalOpen) {
+    return null; // Không hiển thị Header khi modal đang mở
+  }
 
   return (
     <header className="h-16 flex items-center justify-between px-6 relative z-10">
@@ -531,22 +546,22 @@ const Header = () => {
           onClick={handleOpenProfileModal}
         >
           <div className="relative h-9 w-9 rounded-full overflow-hidden mr-2 shadow-sm border border-white/80">
-            {apiUserData?.avatar ? (
+            {userData?.avatar ? (
               <Image 
-                src={apiUserData.avatar} 
-                alt={apiUserData.full_name || "User avatar"} 
+                src={userData.avatar} 
+                alt={userData?.fullName || "User avatar"} 
                 width={36} 
                 height={36}
                 style={{ objectFit: "cover" }}
               />
             ) : (
               <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white">
-                {localUserData.fullName ? localUserData.fullName.charAt(0).toUpperCase() : "U"}
+                {userData?.fullName ? userData.fullName.charAt(0).toUpperCase() : "U"}
               </div>
             )}
           </div>
           <span className="text-sm font-medium text-gray-800 mr-1">
-            {localUserData.fullName ? localUserData.fullName.split(' ').slice(-1)[0] : 'User'}
+            {userData?.fullName ? userData.fullName.split(' ').slice(-1)[0] : 'User'}
           </span>
           <ChevronDown className="w-4 h-4 text-green-600" />
         </div>
@@ -557,7 +572,7 @@ const Header = () => {
         <UserProfileModal
           isOpen={isProfileModalOpen}
           onClose={handleCloseProfileModal}
-          userData={localUserData}
+          userData={userData as UserData}
           onSave={handleSaveUserData}
           isLoading={loading}
           error={error}

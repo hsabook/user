@@ -1,5 +1,60 @@
-import { Book } from '@/types/book';
 import { useState, useCallback } from 'react';
+
+interface QuestionOption {
+  type: string;
+  value: string;
+  answer: string;
+  checked: boolean;
+}
+
+interface Question {
+  id: string;
+  code_id: string;
+  question: string;
+  video?: string | null;
+  type: string;
+  solution?: string;
+  options: QuestionOption[];
+  answers: string[];
+  level: string;
+  subject: string;
+}
+
+interface ExamQuestion {
+  id: string;
+  exam_id: string;
+  question_id: string;
+  score: number | null;
+  question: Question;
+}
+
+interface Exam {
+  id: string;
+  code_id: string;
+  title: string;
+  title_search: string;
+  description: string | null;
+  type: string | null;
+  time: string | null;
+  user_id: string;
+  subject: string;
+  active: boolean;
+  file_upload: string | null;
+  file_download: string | null;
+  status_upload: string;
+  status_exam: string;
+  file_download_draft: string | null;
+  exams_question: ExamQuestion[];
+}
+
+interface BookInfo {
+  id: string;
+  name: string;
+  avatar: string | null;
+  subject: string;
+  publishing_house: string | null;
+  active: boolean;
+}
 
 export interface ChapterData {
   id: string;
@@ -25,8 +80,8 @@ export interface ChapterData {
   attached: any[];
   exam_id: string | null;
   menu_book_questions: any[];
-  exam: null | any;
-  book: Book;
+  exam: Exam | null;
+  book?: BookInfo;
 }
 
 interface ChapterResponse {
@@ -131,4 +186,6 @@ export const useChapter = () => {
   };
 };
 
-export default useChapter; 
+export default useChapter;
+
+export type { Exam }; 
