@@ -235,7 +235,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                     id="fullName"
                     name="fullName"
                     type="text"
-                    value={editedUser.fullName}
+                    value={editedUser?.fullName}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border border-gray-300 rounded-md ${
                       isEditing 
@@ -256,7 +256,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                     id="email"
                     name="email"
                     type="email"
-                    value={editedUser.email}
+                    value={editedUser?.email}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border border-gray-300 rounded-md ${
                       isEditing 
@@ -277,7 +277,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                     id="phone"
                     name="phone"
                     type="text"
-                    value={editedUser.phone}
+                    value={editedUser?.phone}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border border-gray-300 rounded-md ${
                       isEditing 
@@ -297,7 +297,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                     id="bio"
                     name="bio"
                     rows={4}
-                    value={editedUser.bio}
+                    value={editedUser?.bio}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border border-gray-300 rounded-md ${
                       isEditing 
@@ -321,7 +321,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                       id="username"
                       name="username"
                       type="text"
-                      value={editedUser.username}
+                      value={editedUser?.username}
                       onChange={handleChange}
                       className={`w-full px-4 py-3 border border-gray-300 rounded-md ${
                         isEditing 

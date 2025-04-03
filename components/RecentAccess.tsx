@@ -95,13 +95,6 @@ const RecentAccess = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-medium">Truy cập gần đây</h2>
           <div className="flex items-center">
-            <button 
-              onClick={openActivateModal}
-              className="flex items-center text-green-600 hover:text-green-700 transition-colors mr-3"
-              title="Kích hoạt sách mới"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
             <Link href="/activated-books" className="flex items-center text-amber-500 hover:text-amber-600 transition-colors">
               <span className="text-xs">Xem tất cả</span>
               <ChevronRight className="w-4 h-4 ml-1" />

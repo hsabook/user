@@ -10,6 +10,7 @@ import {
   HelpCircle,
   LogOut,
   Plus,
+  Home,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useModal } from "@/contexts/ModalContext";
@@ -44,7 +45,7 @@ const Sidebar = () => {
         <div className="w-11 h-11 rounded-full bg-gradient-to-br from-green-200 to-green-100 overflow-hidden mr-3 border-2 border-white shadow-md">
           <Image src="/avatar.png" alt="User" width={44} height={44} />
         </div>
-        <span className="font-medium text-gray-800">Alex Rouge</span>
+        <span className="font-medium text-gray-800">{localStorage.getItem('userFullName') ?? 'User'}</span>
       </div>
 
       {/* Navigation Menu */}
@@ -60,13 +61,13 @@ const Sidebar = () => {
               }`}
               onClick={() => setActiveLink("/")}
             >
-              <Clock className={`w-5 h-5 mr-3 ${activeLink === "/" ? "text-green-600" : ""}`} />
+              <Home className={`w-5 h-5 mr-3 ${activeLink === "/" ? "text-green-600" : ""}`} />
               <span>Trang chủ</span>
             </Link>
           </li>
           <li className="mb-2">
             <Link
-              href="/courses"
+              href="/"
               className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
                 activeLink === "/courses" 
                   ? "bg-white/70 text-green-700 shadow-sm border border-green-100/50" 
@@ -75,7 +76,7 @@ const Sidebar = () => {
               onClick={() => setActiveLink("/courses")}
             >
               <BookOpen className={`w-5 h-5 mr-3 ${activeLink === "/courses" ? "text-green-600" : ""}`} />
-              <span>Khóa học</span>
+              <span >Khóa học (Soon)</span>
             </Link>
           </li>
           {/* <li className="mb-2">
