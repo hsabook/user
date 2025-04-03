@@ -1,4 +1,6 @@
+import { mockData } from '@/lib/mockData';
 import Image from 'next/image';
+import Link from 'next/link';
 
 type BookData = {
   id: string;
@@ -21,25 +23,25 @@ const ActivatedBooks = () => {
       author: 'J.R.R Tolkien',
       activationDate: '10/10/2023',
       expiryDate: '10/10/2024',
-      coverImage: '/book-cover-1.jpg',
+      coverImage: mockData.avatar_link,
       progress: 25
     },
     {
-      id: '013243',
+      id: '013244',
       title: 'The growth of the soil',
       author: 'Knut Hamsun',
       activationDate: '10/10/2023',
       expiryDate: '10/10/2024',
-      coverImage: '/book-cover-2.jpg',
+      coverImage: mockData.avatar_link,
       progress: 25
     },
     {
-      id: '013243',
+      id: '013245',
       title: 'The Name of the Rose',
       author: 'Umberto Eco',
       activationDate: '10/10/2023',
       expiryDate: '10/10/2024',
-      coverImage: '/book-cover-3.jpg',
+      coverImage: mockData.avatar_link,
       progress: 25
     }
   ];
@@ -63,17 +65,17 @@ const ActivatedBooks = () => {
           </thead>
           <tbody>
             {books.map((book, index) => (
-              <tr key={index} className="border-b">
+              <tr key={index} className="border-b hover:bg-gray-50 transition-colors">
                 <td className="py-3 px-4">
-                  <div className="flex items-center">
+                  <Link href={`/books/${book.id}`} className="flex items-center">
                     <div className="w-10 h-14 relative mr-3 overflow-hidden rounded">
                       <Image src={book.coverImage} alt={book.title} fill className="object-cover" />
                     </div>
                     <div>
-                      <p className="font-medium">{book.title}</p>
+                      <p className="font-medium text-blue-600 hover:underline">{book.title}</p>
                       <p className="text-xs text-gray-500">ID: {book.id}</p>
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="py-3 px-4">{book.author}</td>
                 <td className="py-3 px-4">{book.activationDate}</td>
