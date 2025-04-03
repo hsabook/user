@@ -76,12 +76,9 @@ const Sidebar = () => {
   };
   
   const menuItems = [
-    { href: "/dashboard", icon: <Home className="w-5 h-5" />, text: "Trang chủ" },
-    { href: "/books", icon: <BookOpen className="w-5 h-5" />, text: "Sách của tôi" },
-    { href: "/courses", icon: <GraduationCap className="w-5 h-5" />, text: "Khóa học" },
-    { href: "/videos", icon: <Video className="w-5 h-5" />, text: "Video" },
-    { href: "/calendar", icon: <CalendarDays className="w-5 h-5" />, text: "Lịch học" },
-    { href: "/resources", icon: <Layers className="w-5 h-5" />, text: "Tài nguyên" },
+    { href: "/", icon: <Home className="w-5 h-5" />, text: "Trang chủ" },
+    { href: "", icon: <GraduationCap className="w-5 h-5" />, text: "Khoá học (soon)" },
+    { href: "/activated-books", icon: <BookOpen className="w-5 h-5" />, text: "Sách đã kích hoạt" },
   ];
 
   return (
