@@ -2,22 +2,23 @@
 
 import { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import { toast } from "sonner";
+import { activateBookCode } from "@/services/bookService";
 
 interface ActivateIdModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (data: any) => void;
 }
 
-const ActivateIdModal = ({ isOpen, onClose }: ActivateIdModalProps) => {
+const ActivateIdModal = ({ isOpen, onClose, onSuccess }: ActivateIdModalProps) => {
   const [idSach, setIdSach] = useState("");
   const [activationCode, setActivationCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const modalRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -64,28 +65,40 @@ const ActivateIdModal = ({ isOpen, onClose }: ActivateIdModalProps) => {
       setIsSubmitting(true);
       setError(null);
       
-      // Gọi API để kích hoạt ID sách (Thay thế bằng API thực tế)
-      // Ví dụ:
-      // await activateBook({ id: idSach, code: activationCode });
+      // Chuyển đổi bookCode sang số nếu có thể
+      let bookCode: number;
+      try {
+        bookCode = parseInt(idSach);
+        if (isNaN(bookCode)) {
+          throw new Error("ID sách phải là số");
+        }
+      } catch (err) {
+        setError("ID sách phải là số hợp lệ");
+        setIsSubmitting(false);
+        return;
+      }
       
-      // Giả lập API gọi thành công
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Gọi API để kích hoạt ID sách
+      const result = await activateBookCode(activationCode, bookCode);
       
-      toast({
-        title: "Thành công",
-        description: "ID sách đã được kích hoạt thành công",
-        variant: "default",
+      // Hiển thị thông báo thành công
+      toast.success("ID sách đã được kích hoạt thành công", {
+        description: "Bạn có thể truy cập sách này trong thư viện của mình"
       });
       
+      // Gọi callback onSuccess nếu có
+      if (onSuccess) {
+        onSuccess(result);
+      }
+      
+      // Đóng modal
       onClose();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Có lỗi xảy ra khi kích hoạt ID sách";
       setError(errorMessage);
       
-      toast({
-        title: "Lỗi",
-        description: errorMessage,
-        variant: "destructive",
+      toast.error("Kích hoạt không thành công", {
+        description: errorMessage
       });
     } finally {
       setIsSubmitting(false);
@@ -101,50 +114,43 @@ const ActivateIdModal = ({ isOpen, onClose }: ActivateIdModalProps) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center p-4 md:bg-black md:bg-opacity-30"
+      className="fixed inset-0 flex items-center justify-center p-4 z-50 bg-gradient-to-r from-green-400/20 via-blue-500/20 to-purple-600/20 backdrop-blur-md"
     >
       <div 
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden relative p-6"
+        className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative p-8 border border-white/50"
         onClick={stopPropagation}
       >
         {/* Nút đóng ở góc phải trên cùng */}
         <button 
           onClick={onClose}
-          className="absolute right-6 top-6 text-gray-500 hover:text-gray-700"
+          className="absolute right-6 top-6 text-gray-600 hover:text-gray-900 transition-colors"
+          aria-label="Đóng"
         >
-          <X size={20} />
+          <X size={22} />
         </button>
         
-        {/* Icon và tiêu đề căn trái */}
-        <div className="flex items-start mb-2 flex-col gap-2">
-          <div className="w-10 h-10 bg-lime-500 rounded-lg flex items-center justify-center mr-3">
-          <Image
-                src="/images/active-id-icon.svg"
-                alt="HSA Education Logo"
-                width={56}
-                height={56}
-                className="w-full h-full"
-              />
+        {/* Icon và tiêu đề căn giữa */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-16 h-16 bg-gradient-to-r from-lime-400 to-green-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+            <Image
+              src="/images/active-id-icon.svg"
+              alt="Kích hoạt ID"
+              width={40}
+              height={40}
+              className="w-10 h-10"
+            />
           </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800">Kích hoạt ID</h2>
-            <p className="text-sm text-gray-500 mt-1">Hãy nhập mã để kích hoạt sách</p>
-          </div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Kích hoạt ID</h2>
+          <p className="text-sm text-gray-600">Hãy nhập mã để kích hoạt sách</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-5">
-          {/* Hiển thị lỗi nếu có */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm">
-              {error}
-            </div>
-          )}
           
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* ID sách */}
-            <div>
-              <label htmlFor="idSach" className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="text-center">
+              <label htmlFor="idSach" className="block text-sm font-medium text-gray-700 mb-2">
                 ID sách
               </label>
               <input
@@ -153,15 +159,15 @@ const ActivateIdModal = ({ isOpen, onClose }: ActivateIdModalProps) => {
                 type="text"
                 value={idSach}
                 onChange={(e) => setIdSach(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder=""
+                className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all shadow-sm"
+                placeholder="Nhập ID sách (số)"
                 required
               />
             </div>
             
             {/* Mã kích hoạt */}
-            <div>
-              <label htmlFor="activationCode" className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="text-center">
+              <label htmlFor="activationCode" className="block text-sm font-medium text-gray-700 mb-2">
                 Mã cào kích hoạt
               </label>
               <input
@@ -170,26 +176,26 @@ const ActivateIdModal = ({ isOpen, onClose }: ActivateIdModalProps) => {
                 type="text"
                 value={activationCode}
                 onChange={(e) => setActivationCode(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder=""
+                className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all shadow-sm"
+                placeholder="Nhập mã kích hoạt"
                 required
               />
             </div>
           </div>
 
           {/* Button area */}
-          <div className="mt-6 grid grid-cols-2 gap-4">
+          <div className="mt-8 grid grid-cols-2 gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 transition-colors text-center"
+              className="px-4 py-3 bg-gray-100/80 backdrop-blur-sm text-gray-700 font-medium rounded-xl hover:bg-gray-200/80 transition-all shadow-sm border border-gray-100"
             >
               Hủy bỏ
             </button>
             
             <button
               type="submit"
-              className="px-4 py-3 bg-yellow-400 text-black font-medium rounded-md hover:bg-yellow-500 transition-colors text-center"
+              className="px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-medium rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all shadow-md"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -203,6 +209,10 @@ const ActivateIdModal = ({ isOpen, onClose }: ActivateIdModalProps) => {
             </button>
           </div>
         </form>
+        
+        {/* Hiệu ứng ánh sáng trang trí */}
+        <div className="absolute w-40 h-40 bg-green-400/20 rounded-full blur-3xl -bottom-20 -left-20 z-0"></div>
+        <div className="absolute w-40 h-40 bg-yellow-400/20 rounded-full blur-3xl -top-20 -right-20 z-0"></div>
       </div>
     </div>
   );

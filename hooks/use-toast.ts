@@ -168,24 +168,25 @@ function toast({ ...props }: Toast) {
   };
 }
 
-function useToast() {
-  const [state, setState] = React.useState<State>(memoryState);
+// Thêm các hàm helper cho các loại toast
+toast.success = (title: string, options?: { description?: string }) => {
+  return toast({
+    title,
+    description: options?.description,
+    variant: 'default',
+  });
+};
 
-  React.useEffect(() => {
-    listeners.push(setState);
-    return () => {
-      const index = listeners.indexOf(setState);
-      if (index > -1) {
-        listeners.splice(index, 1);
-      }
-    };
-  }, [state]);
+toast.error = (title: string, options?: { description?: string }) => {
+  return toast({
+    title,
+    description: options?.description,
+    variant: 'destructive',
+  });
+};
 
+export const useToast = () => {
   return {
-    ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId }),
   };
-}
-
-export { useToast, toast };
+};

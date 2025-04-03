@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -9,7 +9,10 @@ import {
   Award,
   BookOpen,
   Check,
+  Loader2,
+  FileText,
 } from "lucide-react";
+import useBookContent, { MenuBookItem, MenuBookChild } from "@/hooks/useBookContent";
 
 interface Author {
   id: string;
@@ -23,17 +26,6 @@ interface Author {
   };
 }
 
-interface Chapter {
-  id: string;
-  title: string;
-  isLocked: boolean;
-  content?: {
-    id: string;
-    title: string;
-    isLocked: boolean;
-  }[];
-}
-
 interface BookDetailProps {
   id: string;
   title: string;
@@ -43,7 +35,8 @@ interface BookDetailProps {
   category: string;
   subcategory: string;
   rating: number;
-  chapters: Chapter[];
+  chapters?: any[]; // Không dùng nữa, giữ để tránh lỗi
+  bookCover?: string; // Thêm tham số ảnh bìa sách
 }
 
 const BookDetail = ({
@@ -55,17 +48,69 @@ const BookDetail = ({
   category,
   subcategory,
   rating,
-  chapters,
+  bookCover = "/images/book-cover.jpg", // Mặc định ảnh bìa nếu không có
 }: BookDetailProps) => {
   const [expandedChapters, setExpandedChapters] = useState<
     Record<string, boolean>
   >({});
+  const { bookContent, isLoading, error, fetchBookContent } = useBookContent();
+
+  useEffect(() => {
+    if (id) {
+      fetchBookContent(id);
+      console.log('Fetch book content for ID:', id);
+    }
+  }, [id]);
 
   const toggleChapter = (chapterId: string) => {
     setExpandedChapters((prev) => ({
       ...prev,
       [chapterId]: !prev[chapterId],
     }));
+  };
+
+  // Hàm kiểm tra loại nội dung
+  const getContentIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'video':
+        return (
+          <div className="w-8 h-8 flex-shrink-0 bg-red-100 rounded-full flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        );
+      case 'exam':
+      case 'test':
+        return (
+          <div className="w-8 h-8 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center">
+            <FileText className="h-4 w-4 text-blue-600" />
+          </div>
+        );
+      default:
+        return (
+          <div className="w-8 h-8 flex-shrink-0 bg-green-100 rounded-full flex items-center justify-center">
+            <BookOpen className="h-4 w-4 text-green-600" />
+          </div>
+        );
+    }
   };
 
   return (
@@ -92,7 +137,7 @@ const BookDetail = ({
           <div className="w-full md:w-32 lg:w-40">
             <div className="relative w-full aspect-[3/4] shadow-md rounded-md overflow-hidden">
               <Image
-                src="/images/book-cover.jpg"
+                src={bookCover}
                 alt={title}
                 fill
                 className="object-cover"
@@ -146,100 +191,118 @@ const BookDetail = ({
             <div className="bg-gray-50 py-3 px-4 border-b">
               <h2 className="font-medium">Tất cả nội dung của sách</h2>
             </div>
-            <div>
-              {chapters.map((chapter) => (
-                <div key={chapter.id} className="border-b last:border-b-0">
-                  <div
-                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
-                    onClick={() => toggleChapter(chapter.id)}
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="mt-1">
-                        {expandedChapters[chapter.id] ? (
-                          <ChevronDown className="w-4 h-4 text-gray-500" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 text-gray-500" />
-                        )}
+            
+            {isLoading ? (
+              <div className="p-8 flex justify-center">
+                <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+                <span className="ml-2">Đang tải nội dung sách...</span>
+              </div>
+            ) : error ? (
+              <div className="p-8 text-center text-red-500">
+                <p>Lỗi khi tải nội dung sách: {error}</p>
+                <button 
+                  onClick={() => fetchBookContent(id)}
+                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Thử lại
+                </button>
+              </div>
+            ) : bookContent.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <p>Không có nội dung sách.</p>
+              </div>
+            ) : (
+              <div>
+                {bookContent.map((item) => (
+                  <div key={item.id} className="border-b last:border-b-0">
+                    <div
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+                      onClick={() => toggleChapter(item.id)}
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="mt-1">
+                          {expandedChapters[item.id] ? (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-gray-500" />
+                          )}
+                        </div>
+                        <div>
+                          <Link href={`/books/${id}/chapters/${item.id}`} className="font-medium hover:text-blue-600">
+                            {item.title}
+                          </Link>
+                          <div className="text-xs text-gray-500 flex items-center gap-1">
+                            <span>Loại: {item.type}</span>
+                            <span className="mx-1">•</span>
+                            <span>Mã: {item.code_id}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <Link href={`/books/${id}/chapters/${chapter.id}`} className="font-medium hover:text-blue-600">
-                          {chapter.title}
-                        </Link>
-                        <div className="text-xs text-gray-500">ID: {chapter.id}</div>
-                      </div>
+                      {!item.active ? (
+                        <div className="w-5 h-5 flex items-center justify-center bg-gray-200 rounded-full">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3 w-3 text-gray-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                            />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 flex items-center justify-center bg-green-100 rounded-full">
+                          <Check className="h-3 w-3 text-green-600" />
+                        </div>
+                      )}
                     </div>
-                    {chapter.isLocked ? (
-                      <div className="w-5 h-5 flex items-center justify-center bg-gray-200 rounded-full">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 text-gray-500"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                          />
-                        </svg>
-                      </div>
-                    ) : (
-                      <div className="w-5 h-5 flex items-center justify-center bg-green-100 rounded-full">
-                        <Check className="h-3 w-3 text-green-600" />
+                    {expandedChapters[item.id] && item.children && item.children.length > 0 && (
+                      <div className="pl-10 pr-4 pb-3">
+                        {item.children.map((child) => (
+                          <Link
+                            href={`/books/${id}/chapter/${item.id}/content/${child.id}`}
+                            key={child.id}
+                            className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-md"
+                          >
+                            <div className="flex items-center gap-2">
+                              {getContentIcon(child.type)}
+                              <span className="text-sm">{child.title}</span>
+                            </div>
+                            {!child.active ? (
+                              <div className="w-5 h-5 flex items-center justify-center bg-gray-200 rounded-full">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-3 w-3 text-gray-500"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                  />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="w-5 h-5 flex items-center justify-center bg-green-100 rounded-full">
+                                <Check className="h-3 w-3 text-green-600" />
+                              </div>
+                            )}
+                          </Link>
+                        ))}
                       </div>
                     )}
                   </div>
-                  {expandedChapters[chapter.id] && chapter.content && (
-                    <div className="pl-10 pr-4 pb-3">
-                      {chapter.content.map((item) => (
-                        <Link
-                          href={`/books/${id}/chapter/${chapter.id}/content/${item.id}`}
-                          key={item.id}
-                          className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-md"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 flex-shrink-0">
-                              <Image
-                                src="/images/test-icon.svg"
-                                alt="HSA Education Logo"
-                                width={56}
-                                height={56}
-                                className="w-full h-full"
-                              />
-                            </div>
-                            <span className="text-sm">{item.title}</span>
-                          </div>
-                          {item.isLocked ? (
-                            <div className="w-5 h-5 flex items-center justify-center bg-gray-200 rounded-full">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-3 w-3 text-gray-500"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                />
-                              </svg>
-                            </div>
-                          ) : (
-                            <div className="w-5 h-5 flex items-center justify-center bg-green-100 rounded-full">
-                              <Check className="h-3 w-3 text-green-600" />
-                            </div>
-                          )}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

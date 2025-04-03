@@ -1,4 +1,4 @@
-import BookDetail from "@/components/BookDetail";
+import BookDetailClient from "@/components/BookDetailClient";
 import { dataMock } from "@/lib/mockData";
 
 interface PageProps {
@@ -10,7 +10,7 @@ interface PageProps {
 // Thêm hàm generateStaticParams để xác định trước tất cả các ID sách
 export async function generateStaticParams() {
   // Danh sách các ID sách mà bạn muốn tạo trang tĩnh
-  const bookIds = ['013243', '013244', '013245'];
+  const bookIds = ['8d523d9b-67c7-449a-8041-01f48ff3d4e0', '013244', '013245'];
   
   return bookIds.map(id => ({
     id: id,
@@ -18,8 +18,11 @@ export async function generateStaticParams() {
 }
 
 export default function BookDetailPage({ params }: PageProps) {
-  // Trong thực tế, bạn sẽ lấy dữ liệu sách từ API dựa trên ID
-  const bookData = {...dataMock, id: params.id}
+  const initialBookData = {
+    ...dataMock,
+    id: params.id,
+    title: `Sách ${params.id.substring(0, 6)}...`,
+  };
 
-  return <BookDetail {...bookData} />;
+  return <BookDetailClient bookId={params.id} initialData={initialBookData} />;
 } 
