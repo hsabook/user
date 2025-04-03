@@ -121,12 +121,12 @@ const ActivateIdModal: React.FC<ActivateIdModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center p-4 z-[999] bg-gradient-to-r from-green-400/20 via-blue-500/20 to-purple-600/20 backdrop-blur-md"
+      className="fixed inset-0 flex items-center justify-center p-4 z-[9999] bg-gradient-to-r from-green-400/20 via-blue-500/20 to-purple-600/20 backdrop-blur-md"
       onClick={onClose}
     >
       <div 
         ref={modalRef}
-        className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative p-8 border border-white/50 z-[1000]"
+        className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative p-8 border border-white/50 z-[10000]"
         onClick={stopPropagation}
       >
         {/* Nút đóng ở góc phải trên cùng */}

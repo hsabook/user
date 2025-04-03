@@ -11,13 +11,12 @@ import {
   LogOut,
   Plus,
 } from "lucide-react";
-import ActivateIdModal from "./ActivateIdModal";
 import { toast } from "sonner";
 import { useModal } from "@/contexts/ModalContext";
 
 const Sidebar = () => {
   const [activeLink, setActiveLink] = useState("/books");
-  const { isActivateModalOpen, openActivateModal, closeActivateModal } = useModal();
+  const { openActivateModal } = useModal();
   
   return (
     <div className="w-60 min-h-screen flex flex-col relative z-10">
@@ -134,17 +133,6 @@ const Sidebar = () => {
           Kích hoạt ID
         </button>
       </div>
-
-      <ActivateIdModal 
-        isOpen={isActivateModalOpen} 
-        onClose={closeActivateModal} 
-        onSuccess={() => {
-          toast.success("Sách đã được kích hoạt thành công", {
-            description: "Bạn có thể truy cập sách này trong thư viện của mình",
-          });
-          closeActivateModal();
-        }} 
-      />
 
       {/* Logout */}
       <div className="p-5 mt-2">
