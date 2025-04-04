@@ -160,6 +160,22 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
   const [userData, setUserData] = useState<LocalUserData | null>(null);
   const { isActivateModalOpen, isUserProfileModalOpen, openUserProfileModal } = useModal();
   const [isSearchExpanded, setIsSearchExpanded] = useState(false); // Kiểm soát trạng thái mở rộng của thanh tìm kiếm trên mobile
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Kiểm tra trạng thái đăng nhập
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const token = localStorage.getItem('accessToken');
+      setIsLoggedIn(!!token);
+    };
+    
+    checkLoginStatus();
+    window.addEventListener('storage', checkLoginStatus);
+    
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+    };
+  }, []);
   
   // Lọc kết quả dựa vào tab đang active
   const filteredResults = searchResults.filter(item => {
@@ -569,35 +585,47 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
 
         {/* Right side */}
         <div className={`flex-none flex items-center space-x-2 md:space-x-5 ml-auto ${isSearchExpanded ? 'hidden md:flex' : 'flex'}`}>
-          <div className="relative p-1.5 md:p-2 rounded-full hover:bg-white/40 transition-all cursor-pointer">
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full border-2 border-white shadow-sm"></div>
-            <Bell className="w-4 h-4 md:w-5 md:h-5 text-green-700" />
-          </div>
-          
-          <div 
-            className="flex items-center cursor-pointer bg-white/30 rounded-full pl-1 pr-2 md:pl-1 md:pr-3 py-1 border border-green-100/50 shadow-sm hover:bg-white/50 transition-all duration-300"
-            onClick={handleOpenUserProfile}
-          >
-            <div className="relative h-7 w-7 md:h-9 md:w-9 rounded-full overflow-hidden mr-1 md:mr-2 shadow-sm border border-white/80">
-              {userData?.avatar ? (
-                <Image 
-                  src={userData.avatar} 
-                  alt={userData?.fullName || "User avatar"} 
-                  width={36} 
-                  height={36}
-                  style={{ objectFit: "cover" }}
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white">
-                  {userData?.fullName ? userData.fullName.charAt(0).toUpperCase() : "U"}
+          {isLoggedIn ? (
+            <>
+              <div className="relative p-1.5 md:p-2 rounded-full hover:bg-white/40 transition-all cursor-pointer">
+                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full border-2 border-white shadow-sm"></div>
+                <Bell className="w-4 h-4 md:w-5 md:h-5 text-green-700" />
+              </div>
+              
+              <div 
+                className="flex items-center cursor-pointer bg-white/30 rounded-full pl-1 pr-2 md:pl-1 md:pr-3 py-1 border border-green-100/50 shadow-sm hover:bg-white/50 transition-all duration-300"
+                onClick={handleOpenUserProfile}
+              >
+                <div className="relative h-7 w-7 md:h-9 md:w-9 rounded-full overflow-hidden mr-1 md:mr-2 shadow-sm border border-white/80">
+                  {userData?.avatar ? (
+                    <Image 
+                      src={userData.avatar} 
+                      alt={userData?.fullName || "User avatar"} 
+                      width={36} 
+                      height={36}
+                      style={{ objectFit: "cover" }}
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white">
+                      {userData?.fullName ? userData.fullName.charAt(0).toUpperCase() : "U"}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <span className="text-xs md:text-sm font-medium text-gray-800 mr-0.5 md:mr-1 hidden sm:block">
-              {typeof window !== 'undefined' && localStorage.getItem('userFullName') ? localStorage.getItem('userFullName') : (headerUserData?.full_name || 'User')}
-            </span>
-            <ChevronDown className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-          </div>
+                <span className="text-xs md:text-sm font-medium text-gray-800 mr-0.5 md:mr-1 hidden sm:block">
+                  {typeof window !== 'undefined' && localStorage.getItem('userFullName') ? localStorage.getItem('userFullName') : (headerUserData?.full_name || 'User')}
+                </span>
+                <ChevronDown className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+              </div>
+            </>
+          ) : (
+            <Link 
+              href="/login"
+              className="flex items-center px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
+            >
+              <User className="w-4 h-4 mr-1" />
+              <span className="text-sm font-medium">Đăng nhập</span>
+            </Link>
+          )}
         </div>
 
         {/* Nút đóng thanh tìm kiếm trên mobile */}

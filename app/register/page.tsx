@@ -214,7 +214,7 @@ export default function Register() {
 
             <button
               type="submit"
-              className="w-full py-3.5 px-4 bg-yellow-300 hover:bg-yellow-400 text-black font-medium rounded-md transition-colors mt-4"
+              className="w-full py-3.5 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors mt-4"
               disabled={isLoading}
             >
               {isLoading ? "Đang xử lý..." : "Đăng ký"}

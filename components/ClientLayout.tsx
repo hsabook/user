@@ -42,7 +42,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         email: data.email,
         phone_number: data.phone,
         description: data.bio,
-        username: data.username
+        username: data.username,
+        avatar: data.avatar
       };
       
       // Gọi API cập nhật thông tin

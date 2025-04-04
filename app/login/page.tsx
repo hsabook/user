@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { loginUser } from '@/app/api/auth/authServices';
 
 export default function Login() {
@@ -14,6 +14,18 @@ export default function Login() {
   const [imageError, setImageError] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get('redirect') || '/';
+
+  // Kiểm tra nếu đã đăng nhập thì chuyển hướng
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        router.push(redirectPath);
+      }
+    }
+  }, [router, redirectPath]);
 
   const handleSubmit = async () => {
     setError("");
@@ -23,13 +35,25 @@ export default function Login() {
       const result = await loginUser(username, password);
 
       if (result.success) {
-        // Lưu token
+        // Lưu token vào localStorage
         if (result.data.data.accessToken) {
           localStorage.setItem("accessToken", result.data.data.accessToken);
+          
+          // Lưu token vào cookie để middleware có thể truy cập
+          document.cookie = `accessToken=${result.data.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
+          
+          // Lưu thông tin người dùng vào localStorage
+          if (result.data.data.user) {
+            localStorage.setItem("userFullName", result.data.data.user.full_name || "");
+            localStorage.setItem("username", result.data.data.user.username || "");
+            if (result.data.data.user.avatar) {
+              localStorage.setItem("userAvatar", result.data.data.user.avatar);
+            }
+          }
         }
         
-        // Chuyển hướng
-        router.push('/');
+        // Chuyển hướng về trang được yêu cầu hoặc trang chủ
+        router.push(redirectPath);
       } else {
         setError(result.error);
       }
@@ -174,7 +198,7 @@ export default function Login() {
             <button
               type="button"
               onClick={handleSubmit}
-              className="w-full py-3.5 px-4 bg-yellow-300 hover:bg-yellow-400 text-black font-medium rounded-md transition-colors"
+              className="w-full py-3.5 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors"
               disabled={isLoading}
             >
               {isLoading ? "Đang xử lý..." : "Đăng nhập"}

@@ -3,9 +3,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { X, CheckCircle } from "lucide-react";
+import { X, CheckCircle, Upload, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ChangePasswordModal from "./ChangePasswordModal";
+import { useMediaUpload } from "@/hooks/useMediaUpload";
 
 interface UserData {
   fullName: string;
@@ -13,6 +14,7 @@ interface UserData {
   phone: string;
   bio: string;
   username: string;
+  avatar?: string | null;
 }
 
 interface UserProfileModalProps {
@@ -25,16 +27,18 @@ interface UserProfileModalProps {
 }
 
 const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error }: UserProfileModalProps) => {
-  const [editedUser, setEditedUser] = useState<UserData>(userData || { fullName: '', email: '', phone: '', bio: '', username: '' });
+  const [editedUser, setEditedUser] = useState<UserData>(userData || { fullName: '', email: '', phone: '', bio: '', username: '', avatar: null });
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { uploadFile, isUploading: isUploadingAvatar } = useMediaUpload();
 
   useEffect(() => {
-    setEditedUser(userData || { fullName: '', email: '', phone: '', bio: '', username: '' });
+    setEditedUser(userData || { fullName: '', email: '', phone: '', bio: '', username: '', avatar: null });
     setIsEditing(false); // Reset về trạng thái view mỗi khi mở modal
   }, [userData, isOpen]);
 
@@ -69,12 +73,13 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
         email: editedUser.email,
         phone_number: editedUser.phone,
         description: editedUser.bio,
-        username: editedUser.username
-        // Không gửi password trừ khi người dùng chọn thay đổi mật khẩu
+        username: editedUser.username,
+        avatar: editedUser.avatar
       };
       
       // Gọi hàm onSave đã được truyền từ component cha
       await onSave(editedUser);
+      console.log("editedUser", editedUser);
       
       // Nếu lưu thành công, chuyển về chế độ xem
       setIsEditing(false);
@@ -113,7 +118,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
   };
 
   const cancelEdit = () => {
-    setEditedUser(userData || { fullName: '', email: '', phone: '', bio: '', username: '' }); // Reset về dữ liệu ban đầu
+    setEditedUser(userData || { fullName: '', email: '', phone: '', bio: '', username: '', avatar: null }); // Reset về dữ liệu ban đầu
     setIsEditing(false); // Chuyển về chế độ view
   };
 
@@ -154,6 +159,56 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
     } catch (error) {
       console.error("Lỗi khi đổi mật khẩu:", error);
       throw error; // Ném lỗi để modal password có thể xử lý
+    }
+  };
+
+  const handleAvatarClick = () => {
+    if (isEditing) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Kiểm tra kích thước file (tối đa 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Lỗi",
+        description: "Kích thước ảnh không được vượt quá 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Kiểm tra định dạng file
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn file ảnh",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await uploadFile(file);
+      setEditedUser(prev => ({
+        ...prev,
+        avatar: response.data.url
+      }));
+
+      toast({
+        title: "Thành công",
+        description: "Tải lên ảnh đại diện thành công",
+      });
+    } catch (err) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể tải lên ảnh đại diện",
+        variant: "destructive",
+      });
     }
   };
 
@@ -222,14 +277,48 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
               <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                 {/* Ảnh bên trái (hoặc trên cùng trên mobile) */}
                 <div className="w-full md:w-1/3">
-                  <div className="relative w-full aspect-square max-w-[240px] mx-auto md:mx-0 rounded-lg overflow-hidden bg-gray-100 shadow-md">
-                    <Image
-                      src="https://s3-alpha-sig.figma.com/img/e3c7/2251/266af941e257aaf407a189e3f1034437?Expires=1743984000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=n1Y2-Kue38sNAwhnmZ8ttK0Pl~-rT0ayKjAf8pfKZt~3zkdVaCi7M8V4ZltHCREGSt2-h5LcrbCdDiAUsOujcMszOHQm~X-bc8~2y6qExUd3mfq8-BcPsXZg5LdXCChIbDlrRPRvJl6cyf~VHTxbayk3Eq5vqfF4VDfKZ9Oz8U-lr8ytH~PqBIpPLkdaxsl6~9T7zBWpmMWrUxZIQ~gJWLyV9hikPRo-SFzUHVAA3Ss~7~zAeCG~DV7TxpOj-ZM3t6k3bOoZU~fku1zX6-S57BO4i7zJW3rQMtAVc-zimorHIoYjJWNJeX2qjUV0wM6zUQ6IfDdGMS6AiL0M0hFC-w__"
-                      alt="User profile"
-                      fill
-                      style={{ objectFit: "cover", objectPosition: "70% center" }}
+                  <div 
+                    className={`relative w-full aspect-square max-w-[240px] mx-auto md:mx-0 rounded-lg overflow-hidden bg-gray-100 shadow-md ${isEditing ? 'cursor-pointer group' : ''}`}
+                    onClick={handleAvatarClick}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      disabled={!isEditing || isUploadingAvatar}
                     />
+                    {editedUser.avatar ? (
+                      <Image
+                        src={editedUser.avatar}
+                        alt="User profile"
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white text-4xl font-medium">
+                        {editedUser.fullName ? editedUser.fullName.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
+                    {isEditing && (
+                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        {isUploadingAvatar ? (
+                          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <>
+                            <Camera className="w-6 h-6 text-white" />
+                            <span className="text-white text-sm ml-2">Thay đổi ảnh</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
+                  {isEditing && (
+                    <p className="text-xs text-gray-500 text-center mt-2">
+                      Click để tải lên ảnh đại diện mới
+                    </p>
+                  )}
                 </div>
 
                 {/* Form bên phải (hoặc dưới trên mobile) */}
