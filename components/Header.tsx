@@ -581,7 +581,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               )}
             </div>
             <span className="text-xs md:text-sm font-medium text-gray-800 mr-0.5 md:mr-1 hidden sm:block">
-              {localStorage.getItem('userFullName') ? localStorage.getItem('userFullName') : 'User'}
+              {typeof window !== 'undefined' && localStorage.getItem('userFullName') ? localStorage.getItem('userFullName') : 'User'}
             </span>
             <ChevronDown className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
           </div>
