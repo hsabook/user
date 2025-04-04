@@ -140,10 +140,15 @@ const getSubInfo = (item: TaggedSearchResultItem): string => {
 
 // Thêm props để nhận hàm toggleSidebar từ ClientLayout
 interface HeaderProps {
-  toggleSidebar?: () => void;
+  toggleSidebar: () => void;
+  userData?: {
+    full_name?: string;
+    username?: string;
+    avatar?: string | null;
+  } | null;
 }
 
-const Header = ({ toggleSidebar }: HeaderProps) => {
+export default function Header({ toggleSidebar, userData: headerUserData }: HeaderProps) {
   const { userData: apiUserData, loading, error, fetchUserInfo, updateUserInfo } = useUserInfo();
   const { search, searchResults, resultCounts, isLoading: isSearching, error: searchError } = useSearch();
   const [searchTerm, setSearchTerm] = useState('');
@@ -192,6 +197,14 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       });
     }
   }, [apiUserData]);
+
+  // Fetch thông tin người dùng khi component mount
+  useEffect(() => {
+    // Chỉ fetch nếu chưa có dữ liệu
+    if (!apiUserData && !loading) {
+      fetchUserInfo();
+    }
+  }, [apiUserData, loading, fetchUserInfo]);
 
   // Debounced search - tìm kiếm khi người dùng đã ngừng gõ
   useEffect(() => {
@@ -581,7 +594,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               )}
             </div>
             <span className="text-xs md:text-sm font-medium text-gray-800 mr-0.5 md:mr-1 hidden sm:block">
-              {typeof window !== 'undefined' && localStorage.getItem('userFullName') ? localStorage.getItem('userFullName') : 'User'}
+              {typeof window !== 'undefined' && localStorage.getItem('userFullName') ? localStorage.getItem('userFullName') : (headerUserData?.full_name || 'User')}
             </span>
             <ChevronDown className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
           </div>
@@ -599,6 +612,4 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       </header>
     </>
   );
-};
-
-export default Header; 
+} 

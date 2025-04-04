@@ -18,14 +18,14 @@ interface UserData {
 interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userData: UserData;
+  userData: UserData | null;
   onSave: (data: UserData) => void;
   isLoading?: boolean;
   error?: string | null;
 }
 
 const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error }: UserProfileModalProps) => {
-  const [editedUser, setEditedUser] = useState<UserData>(userData);
+  const [editedUser, setEditedUser] = useState<UserData>(userData || { fullName: '', email: '', phone: '', bio: '', username: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
@@ -34,7 +34,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
   const { toast } = useToast();
 
   useEffect(() => {
-    setEditedUser(userData);
+    setEditedUser(userData || { fullName: '', email: '', phone: '', bio: '', username: '' });
     setIsEditing(false); // Reset về trạng thái view mỗi khi mở modal
   }, [userData, isOpen]);
 
@@ -113,7 +113,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
   };
 
   const cancelEdit = () => {
-    setEditedUser(userData); // Reset về dữ liệu ban đầu
+    setEditedUser(userData || { fullName: '', email: '', phone: '', bio: '', username: '' }); // Reset về dữ liệu ban đầu
     setIsEditing(false); // Chuyển về chế độ view
   };
 

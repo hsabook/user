@@ -10,17 +10,7 @@ import { useState, useEffect } from 'react';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import { X } from 'lucide-react';
 
-// Dữ liệu mẫu cho user - sau này thay thế bằng dữ liệu từ API
-const userData = {
-  fullName: "Alex Rouge",
-  email: "alex@example.com",
-  phone: "0123456789",
-  bio: "Là một người yêu thích đọc sách và học tập.",
-  username: "alexrouge",
-};
-
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { fetchUserInfo } = useUserInfo();
   const { 
     isActivateModalOpen, 
     closeActivateModal,
@@ -29,19 +19,49 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     isAnyModalOpen
   } = useModal();
   
-  // State lưu trữ thông tin người dùng
-  const [user, setUser] = useState(userData);
+  // Sử dụng hook useUserInfo để lấy thông tin người dùng
+  const { userData, loading, error, fetchUserInfo, updateUserInfo } = useUserInfo();
+  
   // State kiểm soát hiển thị sidebar trên mobile
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
+  // Fetch thông tin người dùng khi component mount
+  useEffect(() => {
+    // Chỉ fetch nếu chưa có dữ liệu
+    if (!userData && !loading) {
+      fetchUserInfo();
+    }
+  }, [userData, loading, fetchUserInfo]);
+  
   // Hàm xử lý khi lưu thông tin người dùng
-  const handleSaveUserProfile = async (data: typeof userData) => {
-    // Mô phỏng gọi API lưu thông tin
-    console.log("Saving user data:", data);
-    toast.success("Cập nhật thông tin thành công!", {
-      description: "Thông tin của bạn đã được lưu",
-    });
-    return Promise.resolve();
+  const handleSaveUserProfile = async (data: any) => {
+    try {
+      // Chuyển đổi dữ liệu từ format UserProfileModal sang format API
+      const apiData = {
+        full_name: data.fullName,
+        email: data.email,
+        phone_number: data.phone,
+        description: data.bio,
+        username: data.username
+      };
+      
+      // Gọi API cập nhật thông tin
+      await updateUserInfo(apiData);
+      
+      // Hiển thị thông báo thành công
+      toast.success("Cập nhật thông tin thành công!", {
+        description: "Thông tin của bạn đã được lưu",
+      });
+      
+      return Promise.resolve();
+    } catch (error) {
+      // Hiển thị thông báo lỗi
+      toast.error("Không thể cập nhật thông tin", {
+        description: error instanceof Error ? error.message : "Có lỗi xảy ra",
+      });
+      
+      return Promise.reject(error);
+    }
   };
 
   // Đóng sidebar khi resize to desktop
@@ -73,11 +93,20 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
   
+  // Chuyển đổi dữ liệu từ API sang format UserProfileModal
+  const userProfileData = userData ? {
+    fullName: userData.full_name || '',
+    email: userData.email || '',
+    phone: userData.phone_number || '',
+    bio: userData.description || '',
+    username: userData.username || ''
+  } : null;
+  
   return (
     <div className="flex h-screen bg-gray-50 relative">
       {/* Sidebar trên desktop - hidden trên mobile */}
       <div className="hidden lg:block">
-        <Sidebar />
+        <Sidebar userData={userData} />
       </div>
       
       {/* Overlay khi sidebar mobile mở */}
@@ -93,13 +122,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <div className="absolute top-3 right-3 cursor-pointer p-1" onClick={() => setIsMobileSidebarOpen(false)}>
           <X className="h-6 w-6 text-gray-500" />
         </div>
-        <Sidebar />
+        <Sidebar userData={userData} />
       </div>
       
       {/* Main Content - ẩn khi bất kỳ modal nào mở */}
       <div className={`flex-1 flex flex-col overflow-hidden ${isAnyModalOpen ? 'hidden' : ''}`}>
-        {/* Truyền toggleSidebar vào Header */}
-        <Header toggleSidebar={toggleSidebar} />
+        {/* Truyền toggleSidebar và userData vào Header */}
+        <Header toggleSidebar={toggleSidebar} userData={userData} />
         
         <div className="flex-1 overflow-auto p-4 md:p-6">
           <div className="max-w-7xl mx-auto">
@@ -124,8 +153,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <UserProfileModal
         isOpen={isUserProfileModalOpen}
         onClose={closeUserProfileModal}
-        userData={user}
+        userData={userProfileData}
         onSave={handleSaveUserProfile}
+        isLoading={loading}
+        error={error}
       />
     </div>
   );

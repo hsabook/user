@@ -20,7 +20,15 @@ import { toast } from "sonner";
 import { useModal } from "@/contexts/ModalContext";
 import { usePathname, useRouter } from 'next/navigation';
 
-const Sidebar = () => {
+interface SidebarProps {
+  userData?: {
+    full_name?: string;
+    username?: string;
+    avatar?: string | null;
+  } | null;
+}
+
+const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
   const [activeLink, setActiveLink] = useState("/books");
   const { openActivateModal } = useModal();
   const [userFullName, setUserFullName] = useState<string>('');
@@ -121,8 +129,8 @@ const Sidebar = () => {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-800 truncate">{userFullName}</p>
-          <p className="text-xs text-gray-500 truncate">@{username || 'username'}</p>
+          <p className="text-sm font-medium text-gray-800 truncate">{sidebarUserData?.full_name || 'User'}</p>
+          <p className="text-xs text-gray-500 truncate">@{sidebarUserData?.username || 'username'}</p>
         </div>
       </div>
 
