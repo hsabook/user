@@ -22,23 +22,19 @@ const ActivateIdModal: React.FC<ActivateIdModalProps> = ({
   const [activationCode, setActivationCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const { closeActivateModal } = useModal();
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.body.style.overflow = 'hidden';
+      setIsClosing(false);
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   const resetForm = () => {
     setActivationId("");
@@ -51,6 +47,15 @@ const ActivateIdModal: React.FC<ActivateIdModalProps> = ({
       resetForm();
     }
   }, [isOpen]);
+
+  // Xử lý đóng modal với animation
+  const handleClose = () => {
+    setIsClosing(true);
+    // Đợi hiệu ứng animation hoàn thành rồi mới thực sự đóng modal
+    setTimeout(() => {
+      onClose();
+    }, 300); // Tăng thời gian để khớp với duration của animation
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +102,7 @@ const ActivateIdModal: React.FC<ActivateIdModalProps> = ({
       }
       
       // Đóng modal
-      onClose();
+      handleClose();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Có lỗi xảy ra khi kích hoạt ID sách";
       setError(errorMessage);
@@ -121,19 +126,28 @@ const ActivateIdModal: React.FC<ActivateIdModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center p-4 z-[9999] bg-gradient-to-r from-green-400/20 via-blue-500/20 to-purple-600/20 backdrop-blur-md"
-      onClick={onClose}
+      className={`fixed inset-0 flex items-center justify-center p-4 z-[9999] bg-gradient-to-r from-green-400/30 via-blue-500/30 to-purple-600/30 backdrop-blur-md overflow-hidden ${
+        isClosing 
+          ? 'animate-out fade-out duration-300 ease-in-out' 
+          : 'animate-in fade-in duration-300 ease-out'
+      }`}
+      onClick={() => handleClose()}
     >
       <div 
         ref={modalRef}
-        className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative p-8 border border-white/50 z-[10000]"
+        className={`bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative p-8 border border-white/60 z-[10000] ${
+          isClosing 
+            ? 'animate-out slide-out-to-bottom-4 zoom-out-95 duration-300 ease-in-out' 
+            : 'animate-in slide-in-from-bottom-4 zoom-in-95 duration-300 ease-out will-change-transform'
+        }`}
+        style={{ transform: 'translate3d(0, 0, 0)' }}
         onClick={stopPropagation}
       >
         {/* Nút đóng ở góc phải trên cùng */}
         <button 
           onClick={(e) => {
             e.preventDefault();
-            onClose();
+            handleClose();
           }}
           className="absolute right-6 top-6 text-gray-600 hover:text-gray-900 transition-colors"
           aria-label="Đóng"
@@ -200,7 +214,7 @@ const ActivateIdModal: React.FC<ActivateIdModalProps> = ({
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                onClose();
+                handleClose();
               }}
               className="px-4 py-3 bg-gray-100/80 backdrop-blur-sm text-gray-700 font-medium rounded-xl hover:bg-gray-200/80 transition-all shadow-sm border border-gray-100"
             >
@@ -223,10 +237,6 @@ const ActivateIdModal: React.FC<ActivateIdModalProps> = ({
             </button>
           </div>
         </form>
-        
-        {/* Hiệu ứng ánh sáng trang trí */}
-        <div className="absolute w-40 h-40 bg-green-400/20 rounded-full blur-3xl -bottom-20 -left-20 z-0"></div>
-        <div className="absolute w-40 h-40 bg-yellow-400/20 rounded-full blur-3xl -top-20 -right-20 z-0"></div>
       </div>
     </div>
   );

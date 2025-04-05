@@ -33,6 +33,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
   const [editedUser, setEditedUser] = useState<UserData>(userData || { avatar: '', description: '', email: '', full_name: '', phone_number: '', username: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [localUserData, setLocalUserData] = useState<UserData | null>(userData);
@@ -47,6 +48,10 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
       setEditedUser(userData);
     }
     setIsEditing(false); // Reset về trạng thái view mỗi khi mở modal
+    // Khi modal mở, đặt lại trạng thái closing
+    if (isOpen) {
+      setIsClosing(false);
+    }
   }, [userData, isOpen]);
 
   useEffect(() => {
@@ -58,6 +63,15 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
       document.body.style.overflow = '';
     };
   }, [isOpen]);
+
+  // Xử lý đóng modal với animation
+  const handleClose = () => {
+    setIsClosing(true);
+    // Đợi hiệu ứng animation hoàn thành rồi mới thực sự đóng modal
+    setTimeout(() => {
+      onClose();
+    }, 300); // Tăng thời gian để khớp với duration của animation
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -230,7 +244,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4 backdrop-blur-[3px]">
         <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
@@ -243,14 +257,14 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4 backdrop-blur-[3px]">
         <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
           <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md">
             {error}
           </div>
           <div className="flex justify-center">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
             >
               Đóng
@@ -263,16 +277,27 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div 
+        className={`fixed inset-0 bg-black/40 z-[9997] flex items-center justify-center p-2 sm:p-4 overflow-y-auto backdrop-blur-[3px] overflow-hidden ${
+          isClosing 
+            ? 'animate-out fade-out duration-300 ease-in-out' 
+            : 'animate-in fade-in duration-300 ease-out'
+        }`}
+      >
         <div 
           ref={modalRef}
-          className="bg-white rounded-lg shadow-xl w-full max-w-5xl overflow-hidden max-h-[90vh] flex flex-col"
+          className={`bg-white rounded-lg shadow-xl w-full max-w-5xl overflow-hidden max-h-[90vh] flex flex-col ${
+            isClosing 
+              ? 'animate-out slide-out-to-bottom-4 zoom-out-95 duration-300 ease-in-out' 
+              : 'animate-in slide-in-from-bottom-4 zoom-in-95 duration-300 ease-out will-change-transform'
+          }`}
+          style={{ transform: 'translate3d(0, 0, 0)' }}
         >
           {/* Header */}
           <div className="flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10">
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Thông tin</h2>
             <button 
-              onClick={onClose}
+              onClick={handleClose}
               className="text-gray-500 hover:text-gray-700 p-1"
             >
               <X size={20} />
