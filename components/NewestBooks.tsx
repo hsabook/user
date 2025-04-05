@@ -165,28 +165,28 @@ const NewestBooks = () => {
       {/* Background với hiệu ứng gradient mờ */}
       <div className="absolute inset-0 bg-gradient-to-r from-green-50 via-green-100/30 to-green-50/20 rounded-xl -z-10"></div>
       
-      <div className="p-6 backdrop-blur-sm rounded-xl border border-green-200/50 shadow-lg">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-green-700 flex items-center">
-            <span className="inline-block w-2 h-8 bg-green-500 rounded-full mr-3"></span>
+      <div className="p-4 sm:p-6 backdrop-blur-sm rounded-xl border border-green-200/50 shadow-lg">
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-semibold text-green-700 flex items-center">
+            <span className="inline-block w-2 h-8 bg-green-500 rounded-full mr-2 sm:mr-3"></span>
             Danh sách sách
           </h2>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button 
               onClick={scrollPrev}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white/80 border border-green-300 text-green-700 shadow-sm hover:bg-green-50 hover:shadow transition-all duration-300"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/80 border border-green-300 text-green-700 shadow-sm hover:bg-green-50 hover:shadow transition-all duration-300"
               aria-label="Previous"
               disabled={loading}
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
             </button>
             <button 
               onClick={scrollNext}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white/80 border border-green-300 text-green-700 shadow-sm hover:bg-green-50 hover:shadow transition-all duration-300"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/80 border border-green-300 text-green-700 shadow-sm hover:bg-green-50 hover:shadow transition-all duration-300"
               aria-label="Next"
               disabled={loading}
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
@@ -216,13 +216,13 @@ const NewestBooks = () => {
         {!loading && books.length > 0 && (
           <div 
             ref={scrollContainerRef}
-            className="flex gap-5 overflow-x-auto pb-4 hide-scrollbar"
+            className="flex gap-3 sm:gap-5 overflow-x-auto pb-4 hide-scrollbar"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {books.map((book) => (
-              <Link href={`/books/${book.id}`} key={book.id} className="flex-shrink-0 w-64">
+              <Link href={`/books/${book.id}`} key={book.id} className="flex-shrink-0 w-48 sm:w-64">
                 <div className="group backdrop-blur-md bg-white/30 rounded-2xl overflow-hidden border border-green-100/50 hover:shadow-xl hover:border-green-200 hover:bg-white/50 transition-all duration-300 h-full flex flex-col">
-                  <div className="relative h-64 overflow-hidden">
+                  <div className="relative h-48 sm:h-64 overflow-hidden">
                     {book.avatar ? (
                       <>
                         {/* Hiệu ứng glow phía sau hình ảnh */}
@@ -242,45 +242,38 @@ const NewestBooks = () => {
                     
                     {/* Tag lớp nằm ở góc phải trên */}
                     {book.book_tags && book.book_tags.length > 0 && book.book_tags.some(tag => tag.tag.name.includes('Lớp')) && (
-                      <div className="absolute top-3 right-3 bg-green-600/90 text-white text-xs font-medium px-2 py-1 rounded-md backdrop-blur-sm z-20">
+                      <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-green-600/90 text-white text-xs font-medium px-2 py-0.5 sm:py-1 rounded-md backdrop-blur-sm z-20">
                         {book.book_tags.find(tag => tag.tag.name.includes('Lớp'))?.tag.name}
                       </div>
                     )}
                   </div>
                   
-                  <div className="p-5 flex-1 flex flex-col">
-                    <h3 className="font-semibold text-gray-800 text-lg line-clamp-2 mb-2 group-hover:text-green-700 transition-colors">
-                      {book.name}
-                    </h3>
-                    
-                    <div className="mt-auto space-y-2">
-                      {book.subject && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                          </svg>
-                          <span className="text-gray-700">{getSubjectTags(book)}</span>
-                        </div>
-                      )}
-                      
+                  <div className="p-3 sm:p-4 flex-1 flex flex-col">
+                    <h3 className="font-medium text-sm sm:text-base line-clamp-2 mb-1 sm:mb-2">{book.name}</h3>
+                    <div className="flex gap-1 sm:gap-2 flex-wrap mt-1">
+                      <span className="inline-block bg-green-100 text-green-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-md">
+                        {book.subject}
+                      </span>
                       {book.publishing_house && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                          <span className="text-gray-700">{book.publishing_house}</span>
-                        </div>
+                        <span className="inline-block bg-blue-100 text-blue-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-md">
+                          {book.publishing_house}
+                        </span>
                       )}
                     </div>
-                    
-                    {/* Button xem chi tiết */}
-                    <div className="mt-4 pt-3 border-t border-green-100">
-                      <div className="text-green-600 text-sm font-medium group-hover:text-green-700 flex items-center justify-between">
-                        <span>Xem chi tiết</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                      </div>
+                    <div className="line-clamp-2 text-xs sm:text-sm text-gray-600 mt-2">
+                      {book.description ? (
+                        <div dangerouslySetInnerHTML={{ 
+                          __html: book.description.substring(0, 60) + (book.description.length > 60 ? '...' : '') 
+                        }} />
+                      ) : (
+                        <p>Sách {book.name}</p>
+                      )}
+                    </div>
+                    <div className="mt-auto pt-2 sm:pt-3 text-right">
+                      <span className="text-green-600 text-xs sm:text-sm font-medium inline-flex items-center">
+                        Xem chi tiết
+                        <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5" />
+                      </span>
                     </div>
                   </div>
                 </div>

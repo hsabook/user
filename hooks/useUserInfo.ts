@@ -21,6 +21,7 @@ interface UpdateUserParams {
   role?: string; 
   avatar?: string;
   status?: string;
+  description?: string;
 }
 
 export function useUserInfo() {
@@ -82,7 +83,8 @@ export function useUserInfo() {
       const response = await fetch('https://api.hsabook.vn/users', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(params)
       });
@@ -90,7 +92,7 @@ export function useUserInfo() {
       const result = await response.json();
       
       if (response.ok) {
-        setUserData(result.data);
+        await fetchUserInfo();
       } else {
         setError(result.error || 'Không thể cập nhật thông tin người dùng');
       }

@@ -70,7 +70,7 @@ const BannerSlider = () => {
   }, [bannerData, nextSlide, isHovering]);
 
   if (loading) {
-    return <div className="h-48 bg-gray-100/50 backdrop-blur-sm animate-pulse rounded-2xl glassmorphism"></div>;
+    return <div className="h-36 sm:h-48 bg-gray-100/50 backdrop-blur-sm animate-pulse rounded-2xl glassmorphism"></div>;
   }
 
   if (error || !bannerData || bannerData.data.length === 0) {
@@ -81,7 +81,7 @@ const BannerSlider = () => {
 
   return (
     <div 
-      className="relative w-full h-48 rounded-2xl overflow-hidden group"
+      className="relative w-full h-36 sm:h-48 rounded-2xl overflow-hidden group"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -95,37 +95,37 @@ const BannerSlider = () => {
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
-          <div className="absolute bottom-4 left-4 text-white font-semibold text-lg drop-shadow-md">
+          <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 text-white font-semibold text-sm sm:text-lg drop-shadow-md">
             {currentBanner.name}
           </div>
         </div>
       </Link>
 
-      {/* Navigation arrows */}
+      {/* Navigation arrows - visible on touch and hover */}
       <button 
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); prevSlide(); }} 
-        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-md"
+        className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-md"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="w-5 h-5 text-gray-800" />
+        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800" />
       </button>
       
       <button 
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextSlide(); }} 
-        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-md"
+        className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-md"
         aria-label="Next slide"
       >
-        <ChevronRight className="w-5 h-5 text-gray-800" />
+        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800" />
       </button>
 
       {/* Slide indicators */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5">
+      <div className="absolute bottom-1 sm:bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5">
         {bannerData.data.map((_, index) => (
           <button
             key={index}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentIndex(index); }}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex ? 'bg-white w-4' : 'bg-white/60 w-2'
+            className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
+              index === currentIndex ? 'bg-white w-3 sm:w-4' : 'bg-white/60 w-1.5 sm:w-2'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
@@ -133,7 +133,7 @@ const BannerSlider = () => {
       </div>
 
       {/* Slide counter */}
-      <div className="absolute bottom-2 right-2 bg-black/30 backdrop-blur-md text-white px-2 py-1 rounded-md text-xs">
+      <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 bg-black/30 backdrop-blur-md text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs">
         {currentIndex + 1}/{bannerData.data.length}
       </div>
     </div>

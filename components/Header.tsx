@@ -214,6 +214,20 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
     }
   }, [apiUserData]);
 
+  // Theo dõi thay đổi từ headerUserData (từ prop) để cập nhật
+  useEffect(() => {
+    if (headerUserData && userData) {
+      setUserData({
+        fullName: headerUserData.full_name || userData.fullName,
+        username: headerUserData.username || userData.username,
+        avatar: headerUserData.avatar || userData.avatar,
+        email: userData.email,
+        phone: userData.phone,
+        bio: userData.bio
+      });
+    }
+  }, [headerUserData, userData]);
+
   // Fetch thông tin người dùng khi component mount
   useEffect(() => {
     // Chỉ fetch nếu chưa có dữ liệu

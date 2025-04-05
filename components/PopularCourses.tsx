@@ -29,7 +29,7 @@ const CourseItem = ({ id, name, avatar, book_tags, trendType }: BookWithTrend) =
   return (
     <Link href={`/books/${id}`}>
       <div className="course-item">
-        <div className="course-item-image">
+        <div className="course-item-image w-8 h-8 sm:w-10 sm:h-10">
           <Image 
             src={avatar || '/book-placeholder.jpg'} 
             alt={name} 
@@ -42,40 +42,19 @@ const CourseItem = ({ id, name, avatar, book_tags, trendType }: BookWithTrend) =
             }}
           />
         </div>
-        <div className="flex-1">
-          <h3 className="font-medium text-sm">{name}</h3>
-          <div className="flex items-center mt-1">
-            <div className="course-item-tag subject">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-xs sm:text-sm line-clamp-1">{name}</h3>
+          <div className="flex items-center mt-1 flex-wrap gap-1">
+            <div className="course-item-tag subject text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">
               {instructor}
             </div>
             {grade && (
-              <div className="course-item-tag grade">
+              <div className="course-item-tag grade text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">
                 {grade}
               </div>
             )}
           </div>
         </div>
-        {/* {trendType === 'up' && (
-          <div className="text-green-500">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-        )}
-        {trendType === 'down' && (
-          <div className="text-red-500">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-            </svg>
-          </div>
-        )}
-        {trendType === 'stable' && (
-          <div className="text-gray-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
-            </svg>
-          </div>
-        )} */}
       </div>
     </Link>
   );
@@ -122,35 +101,32 @@ const PopularCourses = () => {
   }, []);
 
   return (
-    <div className="sidebar-section p-5">
+    <div className="sidebar-section p-3 sm:p-5">
       <div className="dot-pattern"></div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-medium">Khóa học phổ biến</h2>
-        {/* <Link href="/books" className="text-amber-500 hover:text-amber-600 transition-colors">
-          <span className="text-xs">Xem tất cả</span>
-        </Link> */}
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h2 className="text-lg sm:text-xl font-medium">Khóa học phổ biến</h2>
       </div>
       
       {isLoading ? (
         <div className="sidebar-section-content overflow-hidden">
           {[1, 2, 3, 4].map((index) => (
-            <div key={index} className="p-3 border-b border-white/10 animate-pulse">
+            <div key={index} className="p-2 sm:p-3 border-b border-white/10 animate-pulse">
               <div className="flex items-center">
-                <div className="w-10 h-10 bg-gray-200/50 rounded-lg mr-3"></div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200/50 rounded-lg mr-2 sm:mr-3"></div>
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-200/50 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200/50 rounded w-1/2"></div>
+                  <div className="h-3 sm:h-4 bg-gray-200/50 rounded w-3/4 mb-1 sm:mb-2"></div>
+                  <div className="h-2 sm:h-3 bg-gray-200/50 rounded w-1/2"></div>
                 </div>
               </div>
             </div>
           ))}
         </div>
       ) : error ? (
-        <div className="sidebar-section-content p-4 text-red-600">
+        <div className="sidebar-section-content p-3 sm:p-4 text-red-600 text-xs sm:text-sm">
           {error}
         </div>
       ) : courses.length === 0 ? (
-        <div className="sidebar-section-content p-4 text-blue-600">
+        <div className="sidebar-section-content p-3 sm:p-4 text-blue-600 text-xs sm:text-sm">
           Không có khóa học nào.
         </div>
       ) : (

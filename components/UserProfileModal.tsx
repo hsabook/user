@@ -9,12 +9,15 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
 
 interface UserData {
-  fullName: string;
+  avatar: string;
+  description: string;
   email: string;
-  phone: string;
-  bio: string;
+  full_name: string;
+  phone_number: string;
+  rank?: string | null;
+  role?: string | null;
+  status?: string | null;
   username: string;
-  avatar?: string | null;
 }
 
 interface UserProfileModalProps {
@@ -27,18 +30,22 @@ interface UserProfileModalProps {
 }
 
 const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error }: UserProfileModalProps) => {
-  const [editedUser, setEditedUser] = useState<UserData>(userData || { fullName: '', email: '', phone: '', bio: '', username: '', avatar: null });
+  const [editedUser, setEditedUser] = useState<UserData>(userData || { avatar: '', description: '', email: '', full_name: '', phone_number: '', username: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [localUserData, setLocalUserData] = useState<UserData | null>(userData);
   const modalRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { uploadFile, isUploading: isUploadingAvatar } = useMediaUpload();
 
   useEffect(() => {
-    setEditedUser(userData || { fullName: '', email: '', phone: '', bio: '', username: '', avatar: null });
+    if (userData) {
+      setLocalUserData(userData);
+      setEditedUser(userData);
+    }
     setIsEditing(false); // Reset về trạng thái view mỗi khi mở modal
   }, [userData, isOpen]);
 
@@ -69,10 +76,10 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
       
       // Chuyển đổi dữ liệu từ format UserData sang format API cần
       const apiData = {
-        full_name: editedUser.fullName,
+        full_name: editedUser.full_name,
         email: editedUser.email,
-        phone_number: editedUser.phone,
-        description: editedUser.bio,
+        phone_number: editedUser.phone_number,
+        description: editedUser.description,
         username: editedUser.username,
         avatar: editedUser.avatar
       };
@@ -80,6 +87,9 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
       // Gọi hàm onSave đã được truyền từ component cha
       await onSave(editedUser);
       console.log("editedUser", editedUser);
+      
+      // Cập nhật localUserData sau khi lưu thành công
+      setLocalUserData(editedUser);
       
       // Nếu lưu thành công, chuyển về chế độ xem
       setIsEditing(false);
@@ -118,7 +128,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
   };
 
   const cancelEdit = () => {
-    setEditedUser(userData || { fullName: '', email: '', phone: '', bio: '', username: '', avatar: null }); // Reset về dữ liệu ban đầu
+    setEditedUser(localUserData || { avatar: '', description: '', email: '', full_name: '', phone_number: '', username: '' }); // Reset về dữ liệu ban đầu
     setIsEditing(false); // Chuyển về chế độ view
   };
 
@@ -153,9 +163,13 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
         const errorData = await response.json();
         throw new Error(errorData.message || "Không thể thay đổi mật khẩu");
       }
-
       // Nếu thành công, đóng modal
       closePasswordModal();
+      toast({
+        title: "Thành công",
+        description: "Mật khẩu đã được thay đổi",
+        variant: "default",
+      });
     } catch (error) {
       console.error("Lỗi khi đổi mật khẩu:", error);
       throw error; // Ném lỗi để modal password có thể xử lý
@@ -289,16 +303,16 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                       onChange={handleAvatarChange}
                       disabled={!isEditing || isUploadingAvatar}
                     />
-                    {editedUser.avatar ? (
+                    {editedUser?.avatar ? (
                       <Image
-                        src={editedUser.avatar}
+                        src={editedUser?.avatar}
                         alt="User profile"
                         fill
                         style={{ objectFit: "cover" }}
                       />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white text-4xl font-medium">
-                        {editedUser.fullName ? editedUser.fullName.charAt(0).toUpperCase() : "U"}
+                        {editedUser.full_name ? editedUser.full_name.charAt(0).toUpperCase() : "U"}
                       </div>
                     )}
                     {isEditing && (
@@ -325,14 +339,14 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                 <div className="w-full md:w-2/3 space-y-3 sm:space-y-4 mt-4 md:mt-0">
                   {/* Họ và tên */}
                   <div>
-                    <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">
                       Họ và tên
                     </label>
                     <input
-                      id="fullName"
-                      name="fullName"
+                      id="full_name"
+                      name="full_name"
                       type="text"
-                      value={editedUser?.fullName}
+                      value={editedUser?.full_name}
                       onChange={handleChange}
                       className={`w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-md text-sm sm:text-base ${
                         isEditing 
@@ -361,7 +375,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                           : "bg-gray-50 cursor-not-allowed"
                       }`}
                       required
-                      disabled={!isEditing}
+                      disabled={true}
                     />
                   </div>
 
@@ -372,9 +386,9 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                     </label>
                     <input
                       id="phone"
-                      name="phone"
+                      name="phone_number"
                       type="text"
-                      value={editedUser?.phone}
+                      value={editedUser?.phone_number}
                       onChange={handleChange}
                       className={`w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-md text-sm sm:text-base ${
                         isEditing 
@@ -387,14 +401,14 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
 
                   {/* Giới thiệu */}
                   <div>
-                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                       Giới thiệu
                     </label>
                     <textarea
-                      id="bio"
-                      name="bio"
+                      id="description"
+                      name="description"
                       rows={3}
-                      value={editedUser?.bio}
+                      value={editedUser?.description}
                       onChange={handleChange}
                       className={`w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-md text-sm sm:text-base ${
                         isEditing 
@@ -426,7 +440,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                             : "bg-gray-50 cursor-not-allowed"
                         }`}
                         required
-                        disabled={!isEditing}
+                        disabled={true}
                       />
                     </div>
                     

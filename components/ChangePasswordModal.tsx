@@ -46,7 +46,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: ChangePasswordModalP
     e.preventDefault();
     
     // Basic validation
-    if (!oldPassword || !newPassword || !confirmPassword) {
+    if ( !newPassword || !confirmPassword) {
       setError("Vui lòng điền đầy đủ thông tin");
       return;
     }
@@ -112,7 +112,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: ChangePasswordModalP
           )}
           
           {/* Old password */}
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label htmlFor="old-password" className="block text-sm font-medium text-gray-700 mb-1">
               Mật khẩu hiện tại
             </label>
@@ -137,7 +137,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: ChangePasswordModalP
                 {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-          </div>
+          </div> */}
           
           {/* New password */}
           <div className="mb-4">

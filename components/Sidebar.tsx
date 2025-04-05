@@ -65,6 +65,23 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
     };
   }, []);
   
+  // Cập nhật dữ liệu localStorage khi userData từ props thay đổi
+  useEffect(() => {
+    if (sidebarUserData) {
+      // Cập nhật localStorage khi có dữ liệu mới từ props
+      if (typeof window !== 'undefined') {
+        if (sidebarUserData.username) localStorage.setItem('username', sidebarUserData.username);
+        if (sidebarUserData.full_name) localStorage.setItem('userFullName', sidebarUserData.full_name);
+        if (sidebarUserData.avatar) localStorage.setItem('userAvatar', sidebarUserData.avatar);
+        
+        // Cập nhật state local
+        setUsername(sidebarUserData.username || '');
+        setUserFullName(sidebarUserData.full_name || 'Khách');
+        setUserAvatar(sidebarUserData.avatar || null);
+      }
+    }
+  }, [sidebarUserData]);
+  
   const handleLogout = () => {
     // Clear localStorage
     if (typeof window !== 'undefined') {
@@ -116,10 +133,10 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
       {/* User Profile */}
       <div className="px-5 py-4 flex items-center mb-6">
         <div className="w-11 h-11 rounded-full bg-gradient-to-br from-green-200 to-green-100 overflow-hidden mr-3 border-2 border-white shadow-md">
-          {userAvatar ? (
+          {sidebarUserData?.avatar ? (
             <Image 
-              src={userAvatar} 
-              alt={userFullName || 'User avatar'} 
+              src={sidebarUserData.avatar} 
+              alt={sidebarUserData.full_name || 'User avatar'} 
               width={44} 
               height={44} 
               style={{ objectFit: 'cover' }} 
@@ -127,7 +144,7 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white">
-              {userFullName ? userFullName.charAt(0).toUpperCase() : 'U'}
+              {sidebarUserData?.full_name ? sidebarUserData.full_name.charAt(0).toUpperCase() : 'U'}
             </div>
           )}
         </div>

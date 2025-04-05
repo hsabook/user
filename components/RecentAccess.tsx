@@ -21,8 +21,8 @@ const RecentItem = ({ book }: RecentItemProps) => {
 
   return (
     <Link href={`/books/${book.id}`} className="glassmorphism-card block">
-      <div className="flex items-center p-4">
-        <div className="w-24 h-24 md:w-32 md:h-32 relative rounded-lg overflow-hidden mr-4 shadow-sm">
+      <div className="flex items-center p-3 sm:p-4">
+        <div className="w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 relative rounded-lg overflow-hidden mr-3 sm:mr-4 shadow-sm">
           <Image 
             src={book.avatar} 
             alt={book.name} 
@@ -36,20 +36,20 @@ const RecentItem = ({ book }: RecentItemProps) => {
           />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-medium">{book.name}</h3>
-          <div className="flex items-center mt-2 flex-wrap">
-            <div className="course-item-tag subject mb-1">
+          <h3 className="text-base sm:text-lg font-medium line-clamp-2">{book.name}</h3>
+          <div className="flex items-center mt-1 sm:mt-2 flex-wrap gap-1.5">
+            <div className="course-item-tag subject text-xs sm:text-sm mb-1 px-1.5 py-0.5 sm:px-2 sm:py-1">
               {book.subject}
             </div>
             {gradeTag && (
-              <div className="course-item-tag grade">
+              <div className="course-item-tag grade text-xs sm:text-sm px-1.5 py-0.5 sm:px-2 sm:py-1">
                 {gradeTag.tag.name}
               </div>
             )}
           </div>
-          <div className="mt-2 text-sm text-gray-600">
+          <div className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 line-clamp-2">
             {book.description ? (
-              <div dangerouslySetInnerHTML={{ __html: book.description.substring(0, 60) + '...' }} />
+              <div dangerouslySetInnerHTML={{ __html: book.description.substring(0, 50) + '...' }} />
             ) : (
               <p>Sách {book.name} - {book.subject}</p>
             )}
@@ -85,48 +85,48 @@ const RecentAccess = () => {
   }, []);
 
   return (
-    <div className="mb-8">
-      <div className="sidebar-section p-0 mb-6">
+    <div className="mb-6 sm:mb-8">
+      <div className="sidebar-section p-0 mb-4 sm:mb-6">
         <BannerSlider />
       </div>
       
-      <div className="sidebar-section p-5">
+      <div className="sidebar-section p-3 sm:p-5">
         <div className="dot-pattern"></div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-medium">Truy cập gần đây</h2>
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium">Truy cập gần đây</h2>
           <div className="flex items-center">
             <Link href="/activated-books" className="flex items-center text-amber-500 hover:text-amber-600 transition-colors">
-              <span className="text-xs">Xem tất cả</span>
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <span className="text-xs sm:text-sm">Xem tất cả</span>
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5 sm:ml-1" />
             </Link>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {[1, 2].map((_, index) => (
               <div key={index} className="glassmorphism-card animate-pulse">
-                <div className="flex items-center p-4">
-                  <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-200/50 rounded-lg mr-4"></div>
+                <div className="flex items-center p-3 sm:p-4">
+                  <div className="w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gray-200/50 rounded-lg mr-3 sm:mr-4"></div>
                   <div className="flex-1">
-                    <div className="h-6 bg-gray-200/50 rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-gray-200/50 rounded w-1/2 mb-2"></div>
-                    <div className="h-4 bg-gray-200/50 rounded w-3/4"></div>
+                    <div className="h-4 sm:h-6 bg-gray-200/50 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 sm:h-4 bg-gray-200/50 rounded w-1/2 mb-2"></div>
+                    <div className="h-3 sm:h-4 bg-gray-200/50 rounded w-3/4"></div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="sidebar-section-content p-4 text-red-600">
+          <div className="sidebar-section-content p-3 sm:p-4 text-red-600 text-sm sm:text-base">
             {error}
           </div>
         ) : recentBooks.length === 0 ? (
-          <div className="sidebar-section-content p-4 text-blue-600">
+          <div className="sidebar-section-content p-3 sm:p-4 text-blue-600 text-sm sm:text-base">
             Bạn chưa có sách nào được truy cập gần đây.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {recentBooks.map((book) => (
               <RecentItem key={book.id} book={book} />
             ))}

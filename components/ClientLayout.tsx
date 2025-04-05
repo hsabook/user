@@ -22,10 +22,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   // Sử dụng hook useUserInfo để lấy thông tin người dùng
   const { userData, loading, error, fetchUserInfo, updateUserInfo } = useUserInfo();
   
+  // State cho userData tạm thời (để hiển thị ngay lập tức trước khi API hoàn thành)
+  const [tempUserData, setTempUserData] = useState<typeof userData>(null);
+  
   // State kiểm soát hiển thị sidebar trên mobile
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
-  // Fetch thông tin người dùng khi component mount
+  // Fetch thông tin người dùng khi component mount hoặc modal đóng
   useEffect(() => {
     // Chỉ fetch nếu chưa có dữ liệu
     if (!userData && !loading) {
@@ -33,18 +36,43 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }
   }, [userData, loading, fetchUserInfo]);
   
+  // Fetch lại thông tin khi modal đóng
+  useEffect(() => {
+    if (!isUserProfileModalOpen && tempUserData) {
+      // Nếu modal vừa đóng và có tempUserData, reset tempUserData
+      setTempUserData(null);
+      // Fetch lại dữ liệu từ server
+      fetchUserInfo();
+    }
+  }, [isUserProfileModalOpen, fetchUserInfo, tempUserData]);
+  
   // Hàm xử lý khi lưu thông tin người dùng
   const handleSaveUserProfile = async (data: any) => {
     try {
       // Chuyển đổi dữ liệu từ format UserProfileModal sang format API
       const apiData = {
-        full_name: data.fullName,
+        full_name: data.full_name,
         email: data.email,
-        phone_number: data.phone,
-        description: data.bio,
+        phone_number: data.phone_number,
+        description: data.description,
         username: data.username,
         avatar: data.avatar
       };
+      
+      console.log("Dữ liệu cập nhật:", apiData);
+      
+      // Cập nhật userData tạm thời trước khi API hoàn thành
+      const updatedUserData = userData ? {
+        ...userData,
+        full_name: data.full_name,
+        email: data.email,
+        phone_number: data.phone_number,
+        description: data.description,
+        avatar: data.avatar
+      } : null;
+      
+      // Cập nhật state tạm thời
+      setTempUserData(updatedUserData);
       
       // Gọi API cập nhật thông tin
       await updateUserInfo(apiData);
@@ -96,18 +124,32 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   
   // Chuyển đổi dữ liệu từ API sang format UserProfileModal
   const userProfileData = userData ? {
-    fullName: userData.full_name || '',
+    full_name: userData.full_name || '',
     email: userData.email || '',
-    phone: userData.phone_number || '',
-    bio: userData.description || '',
-    username: userData.username || ''
+    phone_number: userData.phone_number || '',
+    description: userData.description || '',
+    username: userData.username || '',
+    avatar: userData.avatar || ''
+  } : null;
+  
+  // Sử dụng tempUserData nếu có, ngược lại sử dụng userData
+  const displayUserData = tempUserData || userData;
+  
+  // Chuẩn bị dữ liệu cho UserProfileModal
+  const profileModalData = displayUserData ? {
+    full_name: displayUserData.full_name || '',
+    email: displayUserData.email || '',
+    phone_number: displayUserData.phone_number || '',
+    description: displayUserData.description || '',
+    username: displayUserData.username || '',
+    avatar: displayUserData.avatar || ''
   } : null;
   
   return (
     <div className="flex h-screen bg-gray-50 relative">
       {/* Sidebar trên desktop - hidden trên mobile */}
       <div className="hidden lg:block">
-        <Sidebar userData={userData} />
+        <Sidebar userData={displayUserData} />
       </div>
       
       {/* Overlay khi sidebar mobile mở */}
@@ -123,13 +165,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <div className="absolute top-3 right-3 cursor-pointer p-1" onClick={() => setIsMobileSidebarOpen(false)}>
           <X className="h-6 w-6 text-gray-500" />
         </div>
-        <Sidebar userData={userData} />
+        <Sidebar userData={displayUserData} />
       </div>
       
       {/* Main Content - ẩn khi bất kỳ modal nào mở */}
       <div className={`flex-1 flex flex-col overflow-hidden ${isAnyModalOpen ? 'hidden' : ''}`}>
         {/* Truyền toggleSidebar và userData vào Header */}
-        <Header toggleSidebar={toggleSidebar} userData={userData} />
+        <Header toggleSidebar={toggleSidebar} userData={displayUserData} />
         
         <div className="flex-1 overflow-auto p-4 md:p-6">
           <div className="max-w-7xl mx-auto">
@@ -154,7 +196,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <UserProfileModal
         isOpen={isUserProfileModalOpen}
         onClose={closeUserProfileModal}
-        userData={userProfileData}
+        userData={profileModalData}
         onSave={handleSaveUserProfile}
         isLoading={loading}
         error={error}
