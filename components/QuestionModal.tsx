@@ -59,12 +59,6 @@ const QuestionModal = ({ question, onClose, isOpen }: QuestionModalProps) => {
     }, 300); // Tăng thời gian để khớp với duration của animation
   };
   
-  // Xử lý click trực tiếp cho nút đóng
-  const handleCloseButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    handleClose();
-  };
-  
   if (!isOpen) return null;
 
   return (
@@ -78,10 +72,9 @@ const QuestionModal = ({ question, onClose, isOpen }: QuestionModalProps) => {
               : 'animate-in slide-in-from-bottom-4 zoom-in-95 duration-300 ease-out will-change-transform'
           }`}
           style={{ transform: 'translate3d(0, 0, 0)' }}
-          onClick={(e) => e.stopPropagation()}
         >
           {/* Header Modal */}
-          <div className="flex justify-between items-center border-b border-green-100 px-6 py-4 bg-gradient-to-r from-green-50 to-green-100 rounded-t-xl sticky top-0 z-20 relative">
+          <div className="flex justify-between items-center border-b border-green-100 px-6 py-4 bg-gradient-to-r from-green-50 to-green-100 rounded-t-xl sticky top-0 z-10">
             <h3 className="text-lg font-medium text-green-800">
               Câu hỏi: <span className="text-green-600">{question.code_id}</span>
             </h3>
@@ -95,10 +88,8 @@ const QuestionModal = ({ question, onClose, isOpen }: QuestionModalProps) => {
                  question.level === 'medium' ? 'Trung bình' : 'Khó'}
               </span>
               <button 
-                onClick={handleCloseButtonClick} 
-                className="rounded-full h-9 w-9 flex items-center justify-center hover:bg-green-200 text-green-700 transition-colors relative z-30 pointer-events-auto cursor-pointer"
-                aria-label="Đóng"
-                type="button"
+                onClick={handleClose} 
+                className="rounded-full h-8 w-8 flex items-center justify-center hover:bg-green-200 text-green-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>

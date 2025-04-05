@@ -354,7 +354,7 @@ const UserProfileModal = ({ isOpen, onClose, userData, onSave, isLoading, error 
                     )}
                   </div>
                   {isEditing && (
-                    <p className="text-xs text-gray-500 text-center mt-2">
+                    <p className="text-xs text-gray-500 text-center mt-2 max-w-[240px] mx-auto md:mx-0">
                       Click để tải lên ảnh đại diện mới
                     </p>
                   )}
