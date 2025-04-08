@@ -11,6 +11,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [imageError, setImageError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -30,12 +31,23 @@ export default function Login() {
 
   const handleSubmit = async () => {
     setError("");
+    setSuccess("");
     setIsLoading(true);
 
+    // Kiểm tra kết nối internet
+    if (!navigator.onLine) {
+      setError("Không có kết nối internet. Vui lòng kiểm tra lại kết nối của bạn.");
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       const result = await loginUser(username, password);
 
       if (result.success) {
+        // Hiển thị thông báo thành công
+        setSuccess("Đăng nhập thành công! Đang chuyển hướng...");
+        
         // Lưu token vào localStorage
         if (result.data.data.accessToken) {
           localStorage.setItem("accessToken", result.data.data.accessToken);
@@ -51,12 +63,31 @@ export default function Login() {
               localStorage.setItem("userAvatar", result.data.data.user.avatar);
             }
           }
+          
+          // Đợi một chút để đảm bảo localStorage đã được cập nhật
+          // Điều này đặc biệt quan trọng trên thiết bị di động
+          setTimeout(() => {
+            // Đảm bảo accessToken đã được lưu trữ trước khi chuyển hướng
+            const savedToken = localStorage.getItem("accessToken");
+            if (savedToken) {
+              // Sử dụng phương thức thay thế window.location để làm mới hoàn toàn trang
+              // khi điều hướng về trang chủ để đảm bảo dữ liệu người dùng được cập nhật
+              if (redirectPath === '/') {
+                window.location.href = redirectPath;
+              } else {
+                router.push(redirectPath);
+              }
+            } else {
+              // Thử lưu lại nếu không tìm thấy token
+              localStorage.setItem("accessToken", result.data.data.accessToken);
+              window.location.href = redirectPath;
+            }
+          }, 300);
+        } else {
+          setError("Không nhận được token xác thực");
         }
-        
-        // Chuyển hướng về trang được yêu cầu hoặc trang chủ
-        router.push(redirectPath);
       } else {
-        setError(result.error);
+        setError(result.error || "Đăng nhập thất bại");
       }
     } catch (error) {
       setError("Có lỗi xảy ra. Vui lòng thử lại sau.");
@@ -68,6 +99,16 @@ export default function Login() {
   const formSubmitHandler = (e: React.FormEvent) => {
     e.preventDefault();
     handleSubmit();
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value);
+    setError("");
+  };
+  
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    setError("");
   };
 
   return (
@@ -136,7 +177,7 @@ export default function Login() {
                 placeholder="@example.com"
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={handleUsernameChange}
                 required
               />
             </div>
@@ -155,7 +196,7 @@ export default function Login() {
                   placeholder="***********"
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   required
                 />
                 <button
@@ -191,6 +232,13 @@ export default function Login() {
             {error && (
               <div className="p-3 text-sm bg-red-50 text-red-500 rounded-md">
                 {error}
+              </div>
+            )}
+            
+            {/* Success message */}
+            {success && (
+              <div className="p-3 text-sm bg-green-50 text-green-600 rounded-md">
+                {success}
               </div>
             )}
 
