@@ -17,6 +17,7 @@ export interface ExamQuestion {
     question: string;
     type: string;
     solution?: string;
+    order: number;
     options: {
       type: string;
       value: string;
@@ -172,9 +173,11 @@ const ExamQuestionList = ({ exam }: ExamQuestionListProps) => {
         </div>
         
         <div className="divide-y">
-          {exam.exams_question.map((examQuestion: ExamQuestion, index: number) => (
-            <div 
-              key={examQuestion.id} 
+          {exam.exams_question
+            .sort((a, b) => a.question.order - b.question.order)
+            .map((examQuestion: ExamQuestion, index: number) => (
+              <div
+                key={examQuestion.id}
               className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
               onClick={() => openQuestionModal(examQuestion.question)}
             >
