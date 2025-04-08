@@ -27,7 +27,7 @@ interface ChapterDetailComponentProps {
 }
 
 const ChapterDetail = ({ chapterId, comments = [] }: ChapterDetailComponentProps) => {
-  const [activeTab, setActiveTab] = useState<"content" | "answers">("content");
+  const [activeTab, setActiveTab] = useState<"content" | "answers">("answers");
   const [comment, setComment] = useState("");
   const { chapter, isLoading, error, fetchChapter } = useChapter();
 

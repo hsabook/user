@@ -61,10 +61,10 @@ const getTitle = (item: TaggedSearchResultItem): string => {
   if ('name' in item) {
     return item.name;
   } else if ('title' in item) {
-    return item.title;
+    return 'Chương' + item.title;
   } else if ('question' in item) {
-    // Loại bỏ HTML tags từ nội dung câu hỏi
-    return item.question.replace(/<[^>]*>?/gm, '');
+    // Giữ nguyên HTML tags từ nội dung câu hỏi
+    return 'Câu hỏi ' + item.code_id;
   }
   return 'Không có tiêu đề';
 };
@@ -347,9 +347,9 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
         
         {/* Left - Logo hiển thị trên màn hình lớn */}
         <div className="hidden lg:flex flex-shrink-0 items-center mr-4">
-          <Link href="/" className="text-2xl font-bold text-orange-500 hover:text-orange-600 transition-colors">
+          {/* <Link href="/" className="text-2xl font-bold text-orange-500 hover:text-orange-600 transition-colors">
             HSABook
-          </Link>
+          </Link> */}
         </div>
         
         {/* Hamburger menu - chỉ hiển thị trên mobile */}
@@ -575,7 +575,11 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
                                 )}
                               </div>
                               <div className="flex-grow min-w-0">
-                                <h3 className="text-xs md:text-sm font-medium text-gray-900 line-clamp-1">{getTitle(item)}</h3>
+                                <h3 className="text-xs md:text-sm font-medium text-gray-900 line-clamp-1">
+                                 {
+                                   getTitle(item)
+                                 }
+                                </h3>
                                 <div className="mt-0.5 md:mt-1 text-[10px] md:text-xs text-gray-500 flex flex-wrap gap-1">
                                   {getSubInfo(item) && (
                                     <span className="inline-flex items-center">
@@ -634,9 +638,11 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
                       <Image 
                         src={userData.avatar} 
                         alt={userData?.fullName || "User avatar"} 
-                        width={36} 
-                        height={36}
-                        style={{ objectFit: "cover" }}
+                        width={40} 
+                        height={40}
+                        className="w-full h-full object-cover"
+                        unoptimized
+                        priority
                       />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white">

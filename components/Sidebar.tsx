@@ -132,9 +132,10 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
               src={sidebarUserData.avatar} 
               alt={sidebarUserData.full_name || 'User avatar'} 
               width={44} 
-              height={44} 
-              style={{ objectFit: 'cover' }} 
-              className="w-full h-full"
+              height={44}
+              className="w-full h-full object-cover"
+              unoptimized
+              priority
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white">
