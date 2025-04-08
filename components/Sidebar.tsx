@@ -119,15 +119,9 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
       
       {/* Logo */}
       <div className="p-6 mb-2 flex justify-center">
-        <div className="w-16 h-16 relative mr-3 flex-shrink-0 rounded-full bg-white/60 p-2 shadow-lg border border-green-100/70">
-          <Image
-            src="/images/hsa-logo.svg"
-            alt="HSA Education Logo"
-            width={56}
-            height={56}
-            className="w-full h-full drop-shadow-sm"
-          />
-        </div>
+        <Link href="/" className="text-3xl font-bold text-orange-500 hover:text-orange-600 transition-colors">
+          HSABook
+        </Link>
       </div>
 
       {/* User Profile */}

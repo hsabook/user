@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, Clock, Book, Zap, ChevronRight } from 'lucide-react';
 import QuestionModal from './QuestionModal';
 import { Exam as ExamType } from '@/hooks/useChapter';
+import { useSearchParams } from 'next/navigation';
 
 export interface ExamQuestion {
   id: string;
@@ -49,6 +50,7 @@ interface ExamQuestionListProps {
 const ExamQuestionList = ({ exam }: ExamQuestionListProps) => {
   const [selectedQuestion, setSelectedQuestion] = useState<ExamQuestion['question'] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const searchParams = useSearchParams();
 
   const openQuestionModal = (question: ExamQuestion['question']) => {
     setSelectedQuestion(question);
@@ -59,11 +61,30 @@ const ExamQuestionList = ({ exam }: ExamQuestionListProps) => {
     setIsModalOpen(false);
   };
 
+  // Kiểm tra và mở modal câu hỏi từ URL nếu có tham số question
+  useEffect(() => {
+    const questionId = searchParams.get('question');
+    if (questionId && exam.exams_question?.length > 0) {
+      const foundExamQuestion = exam.exams_question.find(
+        (q: any) => q.question_id === questionId || q.id === questionId || q.question.id === questionId
+      );
+      
+      if (foundExamQuestion && 
+          typeof foundExamQuestion.question === 'object' && 
+          'id' in foundExamQuestion.question &&
+          'code_id' in foundExamQuestion.question &&
+          'question' in foundExamQuestion.question &&
+          'type' in foundExamQuestion.question) {
+        openQuestionModal(foundExamQuestion.question as ExamQuestion['question']);
+      }
+    }
+  }, [searchParams, exam.exams_question]);
+
   // Phân loại câu hỏi theo mức độ
   const questionsByLevel = {
-    easy: exam.exams_question.filter((q: ExamQuestion) => q.question.level === 'easy'),
-    medium: exam.exams_question.filter((q: ExamQuestion) => q.question.level === 'medium'),
-    hard: exam.exams_question.filter((q: ExamQuestion) => q.question.level === 'hard' || q.question.level === 'difficult')
+    easy: exam.exams_question.filter((q: any) => q.question.level === 'easy'),
+    medium: exam.exams_question.filter((q: any) => q.question.level === 'medium'),
+    hard: exam.exams_question.filter((q: any) => q.question.level === 'hard' || q.question.level === 'difficult')
   };
 
   if (!exam || !exam.exams_question || exam.exams_question.length === 0) {
@@ -174,8 +195,8 @@ const ExamQuestionList = ({ exam }: ExamQuestionListProps) => {
         
         <div className="divide-y">
           {exam.exams_question
-            .sort((a, b) => a.question.order - b.question.order)
-            .map((examQuestion: ExamQuestion, index: number) => (
+            .sort((a: any, b: any) => a.question.order - b.question.order)
+            .map((examQuestion: any, index: number) => (
               <div
                 key={examQuestion.id}
               className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
