@@ -48,6 +48,7 @@ export default function ChapterClient({ bookId, chapterId }: ChapterClientProps)
     <ChapterDetail
       chapterId={chapterId}
       comments={comments}
+      bookId={bookId}
     />
   );
 } 
