@@ -146,9 +146,10 @@ interface HeaderProps {
     username?: string;
     avatar?: string | null;
   } | null;
+  isAuthenticated?: boolean;
 }
 
-export default function Header({ toggleSidebar, userData: headerUserData }: HeaderProps) {
+export default function Header({ toggleSidebar, userData: headerUserData, isAuthenticated }: HeaderProps) {
   const { userData: apiUserData, loading, error, fetchUserInfo, updateUserInfo } = useUserInfo();
   const { search, searchResults, resultCounts, isLoading: isSearching, error: searchError } = useSearch();
   const [searchTerm, setSearchTerm] = useState('');
@@ -164,18 +165,23 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
   
   // Kiểm tra trạng thái đăng nhập
   useEffect(() => {
-    const checkLoginStatus = () => {
-      const token = localStorage.getItem('accessToken');
-      setIsLoggedIn(!!token);
-    };
-    
-    checkLoginStatus();
-    window.addEventListener('storage', checkLoginStatus);
-    
-    return () => {
-      window.removeEventListener('storage', checkLoginStatus);
-    };
-  }, []);
+    // Sử dụng prop isAuthenticated nếu được truyền vào, ngược lại kiểm tra trong localStorage
+    if (isAuthenticated !== undefined) {
+      setIsLoggedIn(isAuthenticated);
+    } else {
+      const checkLoginStatus = () => {
+        const token = localStorage.getItem('accessToken');
+        setIsLoggedIn(!!token);
+      };
+      
+      checkLoginStatus();
+      window.addEventListener('storage', checkLoginStatus);
+      
+      return () => {
+        window.removeEventListener('storage', checkLoginStatus);
+      };
+    }
+  }, [isAuthenticated]);
   
   // Lọc kết quả dựa vào tab đang active
   const filteredResults = searchResults.filter(item => {
@@ -352,47 +358,51 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
           </Link> */}
         </div>
         
-        {/* Hamburger menu - chỉ hiển thị trên mobile */}
-        <div className="lg:hidden mr-3 flex-shrink-0">
-          <button 
-            className="p-2 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-sm shadow-sm border border-green-100/50 transition-all"
+        {/* Left - Menu button on mobile and tablets chỉ hiển thị khi đăng nhập */}
+        {isLoggedIn && (
+          <button
+            className="lg:hidden p-2 rounded-full hover:bg-white/40 mr-2"
             onClick={toggleSidebar}
-            aria-label="Mở/đóng menu"
+            aria-label="Menu"
           >
-            <Menu className="w-5 h-5 text-green-600" />
+            <Menu className="w-5 h-5 text-gray-600" />
           </button>
-        </div>
+        )}
         
         {/* Layout container - phân chia 3 phần cố định: menu | search | user */}
         <div className="flex items-center justify-between w-full">
           {/* Left - empty space cho phần menu */}
           <div className="w-10 lg:hidden flex-shrink-0"></div>
           
-          {/* Center - thanh tìm kiếm với width cố định */}
-          <div className={`flex-1 max-w-[600px] mx-auto transition-all duration-300 ${isSearchExpanded ? 'scale-100 w-full' : 'md:scale-100 scale-0 w-0 md:w-full'}`} 
-               ref={searchRef}>
-            <form onSubmit={handleSearch} className={`w-full ${showResults ? 'md:hidden' : 'block'}`}>
-              <div className="relative w-full">
+          {/* Center - Search form */}
+          <div ref={searchRef} className={`flex-grow flex items-center relative ${isSearchExpanded ? 'w-full' : 'hidden md:block'}`}>
+            <form 
+              onSubmit={handleSearch} 
+              className="w-full relative max-w-[600px] mx-auto"
+            >
+              <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 md:pl-4 pointer-events-none">
-                  <Search className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
+                  <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                 </div>
                 <input
                   type="text"
-                  className="pl-9 md:pl-12 pr-8 md:pr-12 py-2 md:py-3 w-full border border-green-100 bg-white/80 backdrop-blur-sm rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all shadow-md hover:shadow-lg hover:bg-white/90 text-sm md:text-base"
-                  placeholder="Tìm kiếm mã sách, ID đề..."
+                  className="pl-9 md:pl-12 pr-8 md:pr-12 py-2 md:py-3 w-full border border-green-100 bg-white/70 backdrop-blur-sm rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all shadow-inner text-sm md:text-base"
+                  placeholder="Tìm kiếm ID sách, mã đề, từ khóa..."
                   value={searchTerm}
                   onChange={handleSearchInputChange}
                   onFocus={handleSearchFocus}
                 />
-                {searchTerm && (
-                  <button 
-                    type="button" 
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 md:pr-4"
-                    onClick={clearSearch}
-                  >
-                    <X className="w-4 h-4 md:w-5 md:h-5 text-gray-400 hover:text-gray-600 transition-colors" />
-                  </button>
-                )}
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 md:pr-4">
+                  {searchTerm && (
+                    <button 
+                      type="button" 
+                      onClick={clearSearch}
+                      className="w-4 h-4 md:w-5 md:h-5 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </form>
             
@@ -611,14 +621,6 @@ export default function Header({ toggleSidebar, userData: headerUserData }: Head
               </div>
             )}
           </div>
-
-          {/* Nút tìm kiếm trên mobile */}
-          <button 
-            className={`md:hidden mr-2 p-2 flex-shrink-0 rounded-full bg-white/70 backdrop-blur-sm shadow-sm border border-green-100 ${isSearchExpanded ? 'hidden' : 'block'}`}
-            onClick={toggleSearchExpanded}
-          >
-            <Search className="w-4 h-4 text-green-500" />
-          </button>
 
           {/* Right side - fixed width */}
           <div className={`flex-shrink-0 flex items-center space-x-2 md:space-x-3 ${isSearchExpanded ? 'hidden md:flex' : 'flex'}`}>

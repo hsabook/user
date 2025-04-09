@@ -1,6 +1,7 @@
 "use client";
 
 import { useModal } from '@/contexts/ModalContext';
+import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import ActivateIdModal from '@/components/ActivateIdModal';
@@ -9,6 +10,7 @@ import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import { X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { 
@@ -19,7 +21,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     isAnyModalOpen
   } = useModal();
   
-  // Sử dụng hook useUserInfo để lấy thông tin người dùng
+  // Sử dụng hook useAuth
+  const { isAuthenticated, user } = useAuth();
+  
+  // Lấy pathname hiện tại
+  const pathname = usePathname();
+  
+  // Sử dụng hook useUserInfo để lấy thông tin người dùng đầy đủ hơn nếu đã đăng nhập
   const { userData, loading, error, fetchUserInfo, updateUserInfo } = useUserInfo();
   
   // State cho userData tạm thời (để hiển thị ngay lập tức trước khi API hoàn thành)
@@ -28,13 +36,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   // State kiểm soát hiển thị sidebar trên mobile
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
-  // Fetch thông tin người dùng khi component mount hoặc modal đóng
+  // Fetch thông tin người dùng khi component mount hoặc modal đóng nếu đã đăng nhập
   useEffect(() => {
-    // Chỉ fetch nếu chưa có dữ liệu
-    if (!userData && !loading) {
+    if (isAuthenticated && !userData && !loading) {
       fetchUserInfo();
     }
-  }, [userData, loading, fetchUserInfo]);
+  }, [isAuthenticated, userData, loading, fetchUserInfo]);
   
   // Fetch lại thông tin khi modal đóng
   useEffect(() => {
@@ -42,9 +49,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       // Nếu modal vừa đóng và có tempUserData, reset tempUserData
       setTempUserData(null);
       // Fetch lại dữ liệu từ server
-      fetchUserInfo();
+      if (isAuthenticated) {
+        fetchUserInfo();
+      }
     }
-  }, [isUserProfileModalOpen, fetchUserInfo, tempUserData]);
+  }, [isUserProfileModalOpen, fetchUserInfo, tempUserData, isAuthenticated]);
   
   // Hàm xử lý khi lưu thông tin người dùng
   const handleSaveUserProfile = async (data: any) => {
@@ -133,7 +142,17 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   } : null;
   
   // Sử dụng tempUserData nếu có, ngược lại sử dụng userData
-  const displayUserData = tempUserData || userData;
+  const displayUserData = tempUserData || userData || (user ? {
+    full_name: user.full_name || '',
+    email: user.email || '',
+    username: user.username || '',
+    phone_number: user.phone_number || '',
+    description: user.description || '',
+    avatar: user.avatar || '',
+    role: 'user',
+    rank: 0,
+    status: 'active'
+  } : null);
   
   // Chuẩn bị dữ liệu cho UserProfileModal
   const profileModalData = displayUserData ? {
@@ -145,33 +164,40 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     avatar: displayUserData.avatar || ''
   } : null;
   
+  // Kiểm tra xem đường dẫn hiện tại có phải là trang chủ không
+  const isHomePage = pathname === '/';
+  
   return (
     <div className="flex h-screen bg-gray-50 relative">
-      {/* Sidebar trên desktop - hidden trên mobile */}
+      {/* Sidebar trên desktop - hidden trên mobile và chỉ hiển thị khi đăng nhập */}
       <div className="hidden lg:block">
-        <Sidebar userData={displayUserData} />
-      </div>
+          <Sidebar userData={displayUserData} />
+        </div>
       
       {/* Overlay khi sidebar mobile mở */}
-      {isMobileSidebarOpen && (
+      {isMobileSidebarOpen && isAuthenticated && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsMobileSidebarOpen(false)}
         />
       )}
       
-      {/* Sidebar trên mobile - responsive */}
+      {/* Sidebar trên mobile - responsive và chỉ hiển thị khi đăng nhập */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out lg:hidden ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="absolute top-3 right-3 cursor-pointer p-1" onClick={() => setIsMobileSidebarOpen(false)}>
-          <X className="h-6 w-6 text-gray-500" />
+          <div className="absolute top-3 right-3 cursor-pointer p-1" onClick={() => setIsMobileSidebarOpen(false)}>
+            <X className="h-6 w-6 text-gray-500" />
+          </div>
+          <Sidebar userData={displayUserData} />
         </div>
-        <Sidebar userData={displayUserData} />
-      </div>
       
       {/* Main Content - ẩn khi bất kỳ modal nào mở */}
       <div className={`flex-1 flex flex-col overflow-hidden ${isAnyModalOpen ? 'hidden' : ''}`}>
         {/* Truyền toggleSidebar và userData vào Header */}
-        <Header toggleSidebar={toggleSidebar} userData={displayUserData} />
+        <Header 
+          toggleSidebar={toggleSidebar} 
+          userData={displayUserData} 
+          isAuthenticated={isAuthenticated} 
+        />
         
         <div className="flex-1 overflow-auto p-4 md:p-6">
           <div className="max-w-7xl mx-auto">
@@ -181,26 +207,30 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       </div>
 
       {/* Modal Activate ID */}
-      <ActivateIdModal 
-        isOpen={isActivateModalOpen} 
-        onClose={closeActivateModal} 
-        onSuccess={() => {
-          toast.success("Sách đã được kích hoạt thành công", {
-            description: "Bạn có thể truy cập sách này trong thư viện của mình",
-          });
-          closeActivateModal();
-        }} 
-      />
+      {isAuthenticated && (
+        <ActivateIdModal 
+          isOpen={isActivateModalOpen} 
+          onClose={closeActivateModal} 
+          onSuccess={() => {
+            toast.success("Sách đã được kích hoạt thành công", {
+              description: "Bạn có thể truy cập sách này trong thư viện của mình",
+            });
+            closeActivateModal();
+          }} 
+        />
+      )}
       
       {/* Modal Thông tin người dùng */}
-      <UserProfileModal
-        isOpen={isUserProfileModalOpen}
-        onClose={closeUserProfileModal}
-        userData={profileModalData}
-        onSave={handleSaveUserProfile}
-        isLoading={loading}
-        error={error}
-      />
+      {isAuthenticated && (
+        <UserProfileModal
+          isOpen={isUserProfileModalOpen}
+          onClose={closeUserProfileModal}
+          userData={profileModalData}
+          onSave={handleSaveUserProfile}
+          isLoading={loading}
+          error={error}
+        />
+      )}
     </div>
   );
 } 

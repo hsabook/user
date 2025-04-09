@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { loginUser } from '@/app/api/auth/authServices';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -18,16 +19,14 @@ export default function Login() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get('redirect') || '/';
+  const { login, isAuthenticated } = useAuth();
 
   // Kiểm tra nếu đã đăng nhập thì chuyển hướng
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        router.push(redirectPath);
-      }
+    if (isAuthenticated) {
+      router.push(redirectPath);
     }
-  }, [router, redirectPath]);
+  }, [isAuthenticated, router, redirectPath]);
 
   const handleSubmit = async () => {
     setError("");
@@ -48,39 +47,23 @@ export default function Login() {
         // Hiển thị thông báo thành công
         setSuccess("Đăng nhập thành công! Đang chuyển hướng...");
         
-        // Lưu token vào localStorage
+        // Lưu token và thông tin người dùng qua Context
         if (result.data.data.accessToken) {
-          localStorage.setItem("accessToken", result.data.data.accessToken);
+          const userData = result.data.data.user || {
+            username: username,
+            full_name: '',
+            email: ''
+          };
           
-          // Lưu token vào cookie để middleware có thể truy cập
-          document.cookie = `accessToken=${result.data.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
-          
-          // Lưu thông tin người dùng vào localStorage
-          if (result.data.data.user) {
-            localStorage.setItem("userFullName", result.data.data.user.full_name || "");
-            localStorage.setItem("username", result.data.data.user.username || "");
-            if (result.data.data.user.avatar) {
-              localStorage.setItem("userAvatar", result.data.data.user.avatar);
-            }
-          }
+          // Sử dụng hook login để lưu thông tin
+          login(result.data.data.accessToken, userData);
           
           // Đợi một chút để đảm bảo localStorage đã được cập nhật
-          // Điều này đặc biệt quan trọng trên thiết bị di động
           setTimeout(() => {
-            // Đảm bảo accessToken đã được lưu trữ trước khi chuyển hướng
-            const savedToken = localStorage.getItem("accessToken");
-            if (savedToken) {
-              // Sử dụng phương thức thay thế window.location để làm mới hoàn toàn trang
-              // khi điều hướng về trang chủ để đảm bảo dữ liệu người dùng được cập nhật
-              if (redirectPath === '/') {
-                window.location.href = redirectPath;
-              } else {
-                router.push(redirectPath);
-              }
-            } else {
-              // Thử lưu lại nếu không tìm thấy token
-              localStorage.setItem("accessToken", result.data.data.accessToken);
+            if (redirectPath === '/') {
               window.location.href = redirectPath;
+            } else {
+              router.push(redirectPath);
             }
           }, 300);
         } else {

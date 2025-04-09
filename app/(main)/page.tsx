@@ -1,9 +1,14 @@
+"use client";
+
+import { useAuth } from '@/contexts/AuthContext';
 import RecentAccess from '@/components/RecentAccess';
 import ActivatedBooks from '@/components/ActivatedBooks';
 import NewestBooks from '@/components/NewestBooks';
 import Calendar from '@/components/Calendar';
 import QuestionsSection from '@/components/QuestionsSection';
 import PopularCourses from '@/components/PopularCourses';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function Home() {
   return (

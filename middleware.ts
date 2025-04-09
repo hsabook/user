@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 
 // Danh sách các đường dẫn không cần kiểm tra token
 const publicPaths = [
+  '/',
   '/login',
   '/register',
   '/forgot-password',
@@ -23,7 +24,12 @@ const staticPaths = [
   '/sitemap.xml',
 ];
 
-export function middleware(request: NextRequest) {
+// Danh sách các đường dẫn API không cần redirect
+const apiPaths = [
+  '/api/users/check-login',
+];
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Kiểm tra xem đường dẫn có phải là đường dẫn tĩnh không
@@ -38,7 +44,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
-  // Kiểm tra token trong localStorage
+  // Kiểm tra xem đường dẫn có phải là API không cần redirect không
+  const isApiNoRedirect = apiPaths.some(path => pathname.startsWith(path));
+  if (isApiNoRedirect) {
+    return NextResponse.next();
+  }
+  
+  // Kiểm tra token trong cookie
   const token = request.cookies.get('accessToken')?.value;
   
   // Nếu không có token và không phải đường dẫn công khai, điều hướng về trang đăng nhập
@@ -48,6 +60,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
   
+  // Nếu có token, cho phép request tiếp tục
   return NextResponse.next();
 }
 

@@ -1,4 +1,4 @@
-import { RecentVisitsResponse } from '@/types/user';
+import { RecentVisitsResponse, CheckLoginResponse } from '@/types/user';
 
 /**
  * Lấy danh sách sách truy cập gần đây của người dùng
@@ -43,6 +43,51 @@ export async function getRecentVisits(): Promise<RecentVisitsResponse> {
     return data;
   } catch (error) {
     console.error('Error in getRecentVisits:', error);
+    throw error;
+  }
+}
+
+/**
+ * Kiểm tra trạng thái đăng nhập của người dùng
+ * @returns Thông tin token nếu đăng nhập thành công
+ */
+export async function checkLoginStatus(): Promise<CheckLoginResponse> {
+  try {
+    // Lấy token từ localStorage (nếu có)
+    let token = '';
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('accessToken') || '';
+    }
+    
+    if (!token) {
+      throw new Error('Bạn chưa đăng nhập');
+    }
+    
+    // Headers cho request
+    const headers: HeadersInit = {
+      'accept': '*/*',
+      'Authorization': `Bearer ${token}`
+    };
+    
+    // Gọi API local để kiểm tra đăng nhập
+    const response = await fetch('/api/users/check-login', {
+      method: 'POST',
+      headers,
+      cache: 'no-store'
+    });
+    
+    // Xử lý response
+    const data = await response.json();
+    
+    // Kiểm tra response
+    if (!response.ok) {
+      throw new Error(data.messages || 'Không thể kiểm tra trạng thái đăng nhập');
+    }
+    
+    // Trả về kết quả
+    return data;
+  } catch (error) {
+    console.error('Error in checkLoginStatus:', error);
     throw error;
   }
 } 
