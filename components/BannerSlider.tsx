@@ -70,7 +70,7 @@ const BannerSlider = () => {
   }, [bannerData, nextSlide, isHovering]);
 
   if (loading) {
-    return <div className="h-24 sm:h-28 md:h-32 lg:h-36 bg-gray-100/50 backdrop-blur-sm animate-pulse rounded-xl sm:rounded-2xl glassmorphism"></div>;
+    return <div className="w-full aspect-[3/1] bg-gray-100/50 backdrop-blur-sm animate-pulse rounded-xl sm:rounded-2xl glassmorphism"></div>;
   }
 
   if (error || !bannerData || bannerData.data.length === 0) {
@@ -81,7 +81,7 @@ const BannerSlider = () => {
 
   return (
     <div 
-      className="relative w-full h-24 sm:h-28 md:h-32 lg:h-36 rounded-xl sm:rounded-2xl overflow-hidden group"
+      className="relative w-full aspect-[3/1] rounded-xl sm:rounded-2xl overflow-hidden group"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
