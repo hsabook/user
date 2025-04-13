@@ -147,17 +147,20 @@ const BookDetail = ({
       <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-md p-6 rounded-xl mb-8 shadow-sm border border-green-100">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Ảnh bìa sách */}
-          <div className="w-full md:w-32 lg:w-40">
+          <div className="w-full md:w-64 lg:w-80">
             {isInitialLoading ? (
-              <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-br from-green-50 to-green-100 animate-pulse flex items-center justify-center">
+              <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-green-50 to-green-100 animate-pulse flex items-center justify-center">
                 <Loader2 className="h-10 w-10 text-green-300 animate-spin" />
               </div>
             ) : (
-              <div className="relative w-full aspect-[3/4] shadow-md rounded-xl overflow-hidden border border-green-100">
+              <div className="relative w-full aspect-square shadow-md rounded-xl overflow-hidden border border-green-100">
                 <Image
                   src={bookCover}
                   alt={title}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 32rem, 40rem"
+                  quality={90}
+                  priority
                   className="object-cover"
                 />
               </div>
