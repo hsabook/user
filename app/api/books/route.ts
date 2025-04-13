@@ -7,85 +7,69 @@ export const dynamic = 'force-dynamic';
 const VALID_SORT_FIELDS = ['created_at', 'updated_at', 'name'];
 const VALID_SORT_TYPES = ['ASC', 'DESC'];
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    // Lấy các tham số query từ URL
-    const searchParams = request.nextUrl.searchParams;
-    
-    // Lấy và xác thực các tham số
+    // Lấy tham số từ URL
+    const { searchParams } = new URL(req.url);
     const take = searchParams.get('take') || '10';
     const page = searchParams.get('page') || '1';
     const sort_field = searchParams.get('sort_field') || 'created_at';
     const sort_type = searchParams.get('sort_type') || 'DESC';
     const search = searchParams.get('search') || '';
+    const subject = searchParams.get('subject') || '';
+
+    // Lấy token từ request header
+    const authorization = req.headers.get('authorization') || '';
+    const token = authorization.replace('Bearer ', '');
+
+    // Tạo URL API
+    const apiUrl = new URL('https://api.hsabook.vn/books');
+    apiUrl.searchParams.set('take', take);
+    apiUrl.searchParams.set('page', page);
+    apiUrl.searchParams.set('sort_field', sort_field);
+    apiUrl.searchParams.set('sort_type', sort_type);
     
-    // Xác thực sort_field
-    if (sort_field && !VALID_SORT_FIELDS.includes(sort_field)) {
-      return NextResponse.json(
-        { error: `sort_field không hợp lệ. Các giá trị hợp lệ: ${VALID_SORT_FIELDS.join(', ')}` },
-        { status: 400 }
-      );
+    if (search) {
+      apiUrl.searchParams.set('search', search);
     }
     
-    // Xác thực sort_type
-    if (sort_type && !VALID_SORT_TYPES.includes(sort_type)) {
-      return NextResponse.json(
-        { error: `sort_type không hợp lệ. Các giá trị hợp lệ: ${VALID_SORT_TYPES.join(', ')}` },
-        { status: 400 }
-      );
+    if (subject) {
+      apiUrl.searchParams.set('subject', subject);
     }
-    
-    // Tạo URL với các tham số
-    let apiUrl = new URL('https://api.hsabook.vn/books');
-    
-    // Thêm các tham số query
-    if (take) apiUrl.searchParams.append('take', take);
-    if (page) apiUrl.searchParams.append('page', page);
-    if (sort_field) apiUrl.searchParams.append('sort_field', sort_field);
-    if (sort_type) apiUrl.searchParams.append('sort_type', sort_type);
-    if (search) apiUrl.searchParams.append('search', search);
-    
-    // Lấy token từ header Authorization (nếu có)
-    const authHeader = request.headers.get('authorization');
-    
+
     // Headers cho request
     const headers: HeadersInit = {
-      'accept': '*/*'
+      'accept': '*/*',
+      'Content-Type': 'application/json'
     };
-    
-    if (authHeader) {
-      headers['Authorization'] = authHeader;
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    
-    // Gọi API hsabook.vn
-    console.log(`Fetching books from: ${apiUrl.toString()}`);
+
+    // Gọi API
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers,
       cache: 'no-store'
     });
-    
-    // Xử lý response
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-      console.error('Error fetching books:', errorData);
-      
+
+    // Lấy dữ liệu từ response
+    const data = await response.json();
+
+    // Trả về kết quả
+    if (response.ok) {
+      return NextResponse.json(data);
+    } else {
       return NextResponse.json(
-        { error: 'Không thể lấy danh sách sách', details: errorData },
+        { error: data.message || 'Lỗi khi lấy danh sách sách' },
         { status: response.status }
       );
     }
-    
-    // Parse và trả về dữ liệu
-    const data = await response.json();
-    
-    return NextResponse.json(data);
-    
   } catch (error) {
-    console.error('Error in /api/books:', error);
-    
+    console.error('Lỗi server khi lấy danh sách sách:', error);
     return NextResponse.json(
-      { error: 'Lỗi server', message: error instanceof Error ? error.message : String(error) },
+      { error: 'Lỗi server khi xử lý yêu cầu' },
       { status: 500 }
     );
   }

@@ -85,4 +85,5 @@ export interface BookQueryParams {
   sort_field?: 'created_at' | 'updated_at' | 'name';
   sort_type?: 'ASC' | 'DESC';
   search?: string;
+  subject?: string;
 } 

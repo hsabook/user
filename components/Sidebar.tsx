@@ -111,14 +111,19 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
   const menuItems = [
     { href: "/", icon: <Home className="w-5 h-5" />, text: "Trang chủ" },
     {
-      href: "",
-      icon: <GraduationCap className="w-5 h-5" />,
-      text: "Khoá học (soon)",
+      href: "/book-list",
+      icon: <BookOpen className="w-5 h-5" />,
+      text: "Danh sách sách",
     },
     {
       href: "/activated-books",
       icon: <BookOpen className="w-5 h-5" />,
       text: "Sách đã kích hoạt",
+    },
+    {
+      href: "",
+      icon: <GraduationCap className="w-5 h-5" />,
+      text: "Khoá học (soon)",
     },
   ];
 
