@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRightIcon, BookOpenIcon, SearchIcon, FilterIcon } from 'lucide-react';
 import { getBooks } from '@/services/bookService';
-import { formatDate } from '@/lib/utils';
+import { formatDate, sanitizeAndExtractText } from '@/lib/utils';
 import { toast } from 'sonner';
 
 // Định nghĩa kiểu dữ liệu cho sách
@@ -265,7 +265,8 @@ const BookListClient = () => {
                     
                     {/* Mô tả ngắn */}
                     {book.description && (
-                      <p className="text-sm text-gray-600 line-clamp-3 mt-2" dangerouslySetInnerHTML={{ __html: book.description }}>
+                      <p className="text-sm text-gray-600 line-clamp-3 mt-2">
+                        {sanitizeAndExtractText(book.description)}
                       </p>
                     )}
                     

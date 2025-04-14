@@ -1,10 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  //output: 'export',
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  images: { 
+  reactStrictMode: true,
+  images: {
     unoptimized: true,
     remotePatterns: [
       {
@@ -14,6 +11,22 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  // Tối ưu hóa
+  compress: true,
+  swcMinify: true,
+  poweredByHeader: false, // Tăng cường bảo mật
+  
+  // Cấu hình đường dẫn
+  trailingSlash: false,
+  
+  // Tối ưu cho SEO
+  generateEtags: true,
+  
+  // Cấu hình văn bản mở rộng
+  i18n: {
+    locales: ['vi'],
+    defaultLocale: 'vi',
   },
 };
 

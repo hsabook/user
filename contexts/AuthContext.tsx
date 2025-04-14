@@ -98,12 +98,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('userFullName');
     localStorage.removeItem('username');
     localStorage.removeItem('userAvatar');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
     
     // Remove cookie
     document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
     
     setUser(null);
     setIsAuthenticated(false);
+    
+    // Kích hoạt sự kiện đăng xuất để thông báo cho các component khác
+    if (typeof window !== 'undefined') {
+      const logoutEvent = new Event('auth-logout');
+      window.dispatchEvent(logoutEvent);
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('localstorage-changed'));
+    }
     
     // Điều hướng về trang đăng nhập
     router.push('/login');

@@ -3,6 +3,7 @@
 import { useState, useRef, ChangeEvent } from 'react';
 import { Upload, X, Check, AlertCircle } from 'lucide-react';
 import { useMediaUpload } from '@/hooks/useMediaUpload';
+import Image from 'next/image';
 
 interface MediaUploaderProps {
   onUploadSuccess?: (url: string) => void;
@@ -98,10 +99,14 @@ export default function MediaUploader({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center">
               {previewUrl ? (
-                <img 
+                <Image 
                   src={previewUrl} 
                   alt="Preview" 
+                  width={40}
+                  height={40}
                   className="w-10 h-10 object-cover rounded mr-3"
+                  unoptimized
+                  priority
                 />
               ) : (
                 <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center mr-3">

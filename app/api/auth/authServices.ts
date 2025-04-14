@@ -1,4 +1,3 @@
-
 // Hàm xử lý đăng nhập
 export async function loginUser(username: string, password: string) {
   try {
@@ -123,7 +122,20 @@ export function isAuthenticated() {
 export function logout() {
   if (typeof window === 'undefined') return;
   
+  // Xóa tất cả thông tin người dùng
   localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
   localStorage.removeItem('userFullName');
   localStorage.removeItem('username');
+  localStorage.removeItem('userAvatar');
+  localStorage.removeItem('user');
+
+  // Dispatch một sự kiện để thông báo các component khác về việc đăng xuất
+  const logoutEvent = new Event('auth-logout');
+  window.dispatchEvent(logoutEvent);
+  
+  // Cũng kích hoạt sự kiện storage để các tab khác cũng cập nhật
+  window.dispatchEvent(new Event('storage'));
+  window.dispatchEvent(new Event('localstorage-changed'));
+  window.location.href = '/';
 }

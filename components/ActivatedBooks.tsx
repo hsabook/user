@@ -58,6 +58,14 @@ const ActivatedBooks = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Đánh dấu rằng chúng ta đã chuyển sang phía client
+  useEffect(() => {
+    setIsClient(true);
+    setIsLoggedIn(isAuthenticated());
+  }, []);
 
   const fetchActivatedBooks = async () => {
     try {
@@ -165,22 +173,29 @@ const ActivatedBooks = () => {
             </h2>
           </div>
 
-          {isAuthenticated() ? (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center"
-            >
-              <PlusCircleIcon className="w-4 h-4 mr-2" />
-              Kích hoạt sách mới
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push("/login")}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center"
-            >
-              <LogInIcon className="w-4 h-4 mr-2" />
-              Đăng nhập
-            </button>
+          {isClient && (
+            <>
+              {isLoggedIn ? (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center"
+                >
+                  <PlusCircleIcon className="w-4 h-4 mr-2" />
+                  Kích hoạt sách mới
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push("/login")}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center"
+                >
+                  <LogInIcon className="w-4 h-4 mr-2" />
+                  Đăng nhập
+                </button>
+              )}
+            </>
+          )}
+          {!isClient && (
+            <div className="w-[140px] h-9"></div>
           )}
         </div>
 
@@ -209,12 +224,14 @@ const ActivatedBooks = () => {
               className="mb-4 opacity-70"
             />
             <p>Bạn chưa kích hoạt sách nào.</p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="mt-4 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors"
-            >
-              Kích hoạt sách ngay
-            </button>
+            {isClient && isLoggedIn && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="mt-4 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                Kích hoạt sách ngay
+              </button>
+            )}
           </div>
         )}
 
@@ -262,22 +279,24 @@ const ActivatedBooks = () => {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-green-800/60 bg-green-50/50">
                           <div className="w-[85%] h-[90%] rounded-lg border border-green-200/50 bg-white/70 flex items-center justify-center shadow-md">
-                            <BookOpenIcon className="w-16 h-16 opacity-30 text-green-600" />
+                            {isClient && <BookOpenIcon className="w-16 h-16 opacity-30 text-green-600" />}
                           </div>
                         </div>
                       )}
 
                       {/* Số ngày còn lại hiển thị ở góc */}
-                      <div className="absolute top-3 right-3 bg-green-600/90 text-white text-xs font-medium px-2.5 py-1.5 rounded-full backdrop-blur-sm z-20 flex items-center shadow-md">
-                        <ClockIcon className="w-3 h-3 mr-1" />
-                        <span>
-                          {calculateDaysLeft(
-                            activatedBook.created_at,
-                            activatedBook.book.expiration_date
-                          )}{" "}
-                          ngày còn lại
-                        </span>
-                      </div>
+                      {isClient && (
+                        <div className="absolute top-3 right-3 bg-green-600/90 text-white text-xs font-medium px-2.5 py-1.5 rounded-full backdrop-blur-sm z-20 flex items-center shadow-md">
+                          <ClockIcon className="w-3 h-3 mr-1" />
+                          <span>
+                            {calculateDaysLeft(
+                              activatedBook.created_at,
+                              activatedBook.book.expiration_date
+                            )}{" "}
+                            ngày còn lại
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Book Info */}
@@ -293,23 +312,31 @@ const ActivatedBooks = () => {
                       </div>
 
                       {/* Thanh tiến độ sử dụng */}
-                      <div className="w-full bg-gray-200/50 rounded-full h-2 my-3">
-                        <div
-                          className="bg-green-500 h-2 rounded-full"
-                          style={{
-                            width: `${calculateTimeProgress(
-                              activatedBook.created_at,
-                              activatedBook.book.expiration_date
-                            )}%`,
-                          }}
-                        ></div>
-                      </div>
+                      {isClient && (
+                        <div className="w-full bg-gray-200/50 rounded-full h-2 my-3">
+                          <div
+                            className="bg-green-500 h-2 rounded-full"
+                            style={{
+                              width: `${calculateTimeProgress(
+                                activatedBook.created_at,
+                                activatedBook.book.expiration_date
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                      )}
+                      {!isClient && (
+                        <div className="w-full bg-gray-200/50 rounded-full h-2 my-3">
+                          <div className="bg-green-500 h-2 rounded-full" style={{width: "50%"}}></div>
+                        </div>
+                      )}
 
                       <div className="mt-auto space-y-2">
                         {/* Thông tin môn học */}
                         {activatedBook.book.subject && (
                           <div className="flex items-center text-sm text-gray-600">
-                            <BookOpenIcon className="h-4 w-4 mr-2 text-green-600" />
+                            {isClient && <BookOpenIcon className="h-4 w-4 mr-2 text-green-600" />}
+                            {!isClient && <div className="h-4 w-4 mr-2"></div>}
                             <span className="text-gray-700">
                               {activatedBook.book.subject}
                             </span>
@@ -318,7 +345,8 @@ const ActivatedBooks = () => {
 
                         {/* Ngày kích hoạt */}
                         <div className="flex items-center text-sm text-gray-600">
-                          <CalendarIcon className="h-4 w-4 mr-2 text-green-600" />
+                          {isClient && <CalendarIcon className="h-4 w-4 mr-2 text-green-600" />}
+                          {!isClient && <div className="h-4 w-4 mr-2"></div>}
                           <span className="text-gray-700">
                             Kích hoạt: {formatDate(activatedBook.created_at)}
                           </span>
@@ -326,7 +354,8 @@ const ActivatedBooks = () => {
 
                         {/* Ngày hết hạn */}
                         <div className="flex items-center text-sm text-gray-600">
-                          <CalendarIcon className="h-4 w-4 mr-2 text-green-600" />
+                          {isClient && <CalendarIcon className="h-4 w-4 mr-2 text-green-600" />}
+                          {!isClient && <div className="h-4 w-4 mr-2"></div>}
                           <span className="text-gray-700">
                             Hết hạn: {formatDate(expiryDate)}
                           </span>
@@ -337,7 +366,7 @@ const ActivatedBooks = () => {
                       <div className="mt-4 pt-3 border-t border-green-100">
                         <div className="text-green-600 text-sm font-medium group-hover:text-green-700 flex items-center justify-between">
                           <span>Xem chi tiết</span>
-                          <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                          {isClient && <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />}
                         </div>
                       </div>
                     </div>

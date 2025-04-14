@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import { useModal } from "@/contexts/ModalContext";
 import { usePathname, useRouter } from "next/navigation";
-import { isAuthenticated } from "@/app/api/auth/authServices";
+import { isAuthenticated, logout } from "@/app/api/auth/authServices";
 
 interface SidebarProps {
   userData?: {
@@ -35,8 +35,17 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
   const [userFullName, setUserFullName] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  // Đánh dấu rằng chúng ta đã chuyển sang phía client
+  useEffect(() => {
+    setIsClient(true);
+    // Kiểm tra đăng nhập sau khi client-side rendering
+    setIsLoggedIn(isAuthenticated());
+  }, []);
 
   // Hàm cập nhật giá trị từ localStorage (trích xuất từ phần dispatchStorageEvent được sửa)
   const getUsernameFromStorage = () => {
@@ -49,59 +58,70 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
 
   // Lắng nghe sự kiện thay đổi từ localStorage
   useEffect(() => {
-    // Gọi lần đầu khi component mount
-    getUsernameFromStorage();
-
-    // Lắng nghe sự kiện từ window
-    const handleStorageChange = () => {
+    if (isClient) {
+      // Gọi lần đầu khi component mount
       getUsernameFromStorage();
-    };
 
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("localstorage-changed", handleStorageChange);
+      // Lắng nghe sự kiện từ window
+      const handleStorageChange = () => {
+        getUsernameFromStorage();
+        setIsLoggedIn(isAuthenticated());
+      };
 
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("localstorage-changed", handleStorageChange);
-    };
-  }, []);
+      // Xử lý sự kiện đăng xuất
+      const handleLogoutEvent = () => {
+        // Xóa thông tin người dùng khỏi state
+        setUsername("");
+        setUserFullName("Khách");
+        setUserAvatar(null);
+        setIsLoggedIn(false);
+      };
+
+      window.addEventListener("storage", handleStorageChange);
+      window.addEventListener("localstorage-changed", handleStorageChange);
+      window.addEventListener("auth-logout", handleLogoutEvent);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+        window.removeEventListener("localstorage-changed", handleStorageChange);
+        window.removeEventListener("auth-logout", handleLogoutEvent);
+      };
+    }
+  }, [isClient]);
 
   // Cập nhật dữ liệu localStorage khi userData từ props thay đổi
   useEffect(() => {
-    if (sidebarUserData) {
+    if (isClient && sidebarUserData) {
       // Cập nhật localStorage khi có dữ liệu mới từ props
-      if (typeof window !== "undefined") {
-        if (sidebarUserData.username)
-          localStorage.setItem("username", sidebarUserData.username);
-        if (sidebarUserData.full_name)
-          localStorage.setItem("userFullName", sidebarUserData.full_name);
-        if (sidebarUserData.avatar)
-          localStorage.setItem("userAvatar", sidebarUserData.avatar);
+      if (sidebarUserData.username)
+        localStorage.setItem("username", sidebarUserData.username);
+      if (sidebarUserData.full_name)
+        localStorage.setItem("userFullName", sidebarUserData.full_name);
+      if (sidebarUserData.avatar)
+        localStorage.setItem("userAvatar", sidebarUserData.avatar);
 
-        // Cập nhật state local
-        setUsername(sidebarUserData.username || "");
-        setUserFullName(sidebarUserData.full_name || "Khách");
-        setUserAvatar(sidebarUserData.avatar || null);
-      }
+      // Cập nhật state local
+      setUsername(sidebarUserData.username || "");
+      setUserFullName(sidebarUserData.full_name || "Khách");
+      setUserAvatar(sidebarUserData.avatar || null);
+      
+      // Cập nhật trạng thái đăng nhập
+      setIsLoggedIn(true);
     }
-  }, [sidebarUserData]);
+  }, [sidebarUserData, isClient]);
 
   const handleLogout = () => {
-    // Clear localStorage
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("username");
-      localStorage.removeItem("userFullName");
-      localStorage.removeItem("userAvatar");
-
-      // Xóa cookie
-      document.cookie =
-        "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
-
-      // Redirect về trang login
-      router.push("/");
-    }
+    // Clear localStorage thông qua authServices
+    logout();
+    
+    // Cập nhật UI ngay lập tức
+    setIsLoggedIn(false);
+    setUsername("");
+    setUserFullName("Khách");
+    setUserAvatar(null);
+    
+    // Redirect về trang chủ
+    router.push("/");
   };
 
   const isActive = (path: string) => {
@@ -148,7 +168,7 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
       {/* User Profile */}
       <div className="px-5 py-4 flex items-center mb-6">
         <div className="w-11 h-11 rounded-full bg-gradient-to-br from-green-200 to-green-100 overflow-hidden mr-3 border-2 border-white shadow-md">
-          {sidebarUserData?.avatar ? (
+          {isLoggedIn && sidebarUserData?.avatar ? (
             <Image
               src={sidebarUserData.avatar}
               alt={sidebarUserData.full_name || "User avatar"}
@@ -160,18 +180,18 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-500 to-green-400 text-white">
-              {sidebarUserData?.full_name
+              {isLoggedIn && sidebarUserData?.full_name
                 ? sidebarUserData.full_name.charAt(0).toUpperCase()
-                : "U"}
+                : "G"}
             </div>
           )}
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-gray-800 truncate">
-            {sidebarUserData?.full_name || "User"}
+            {isLoggedIn && sidebarUserData?.full_name ? sidebarUserData.full_name : "Khách"}
           </p>
           <p className="text-xs text-gray-500 truncate">
-            @{sidebarUserData?.username || "username"}
+            {isLoggedIn && sidebarUserData?.username ? `@${sidebarUserData.username}` : "Chưa đăng nhập"}
           </p>
         </div>
       </div>
@@ -204,8 +224,8 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
         </ul>
       </nav>
 
-      {/* Activate ID Button */}
-      {isAuthenticated() && (
+      {/* Activate ID Button - Chỉ hiển thị ở client và khi đã đăng nhập */}
+      {isClient && isLoggedIn && (
         <div className="p-5">
           <button
             onClick={openActivateModal}
@@ -217,8 +237,8 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
         </div>
       )}
 
-      {/* Logout */}
-      {isAuthenticated() && (
+      {/* Logout - Chỉ hiển thị ở client và khi đã đăng nhập */}
+      {isClient && isLoggedIn && (
         <div className="p-5 mt-2">
           <button
             onClick={handleLogout}

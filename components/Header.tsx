@@ -174,14 +174,30 @@ export default function Header({ toggleSidebar, userData: headerUserData, isAuth
         setIsLoggedIn(!!token);
       };
       
+      // Xử lý sự kiện đăng xuất
+      const handleLogoutEvent = () => {
+        setIsLoggedIn(false);
+        // Xóa thông tin người dùng khỏi state
+        setUserData(null);
+        
+        // Đảm bảo xóa thông tin người dùng khỏi localStorage nếu cần
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('userFullName');
+          localStorage.removeItem('username');
+          localStorage.removeItem('userAvatar');
+        }
+      };
+      
       checkLoginStatus();
       window.addEventListener('storage', checkLoginStatus);
+      window.addEventListener('auth-logout', handleLogoutEvent);
       
       return () => {
         window.removeEventListener('storage', checkLoginStatus);
+        window.removeEventListener('auth-logout', handleLogoutEvent);
       };
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, userData]);
   
   // Lọc kết quả dựa vào tab đang active
   const filteredResults = searchResults.filter(item => {
@@ -240,15 +256,15 @@ export default function Header({ toggleSidebar, userData: headerUserData, isAuth
         });
       }
     }
-  }, [headerUserData]);
+  }, [headerUserData, userData]);
 
   // Fetch thông tin người dùng khi component mount
   useEffect(() => {
-    // Chỉ fetch nếu chưa có dữ liệu
-    if (!apiUserData && !loading) {
+    // Chỉ fetch nếu đã đăng nhập, chưa có dữ liệu và không đang loading
+    if (isLoggedIn && !apiUserData && !loading) {
       fetchUserInfo();
     }
-  }, [apiUserData, loading, fetchUserInfo]);
+  }, [apiUserData, loading, fetchUserInfo, isLoggedIn]);
 
   // Debounced search - tìm kiếm khi người dùng đã ngừng gõ
   useEffect(() => {
@@ -272,7 +288,7 @@ export default function Header({ toggleSidebar, userData: headerUserData, isAuth
         clearTimeout(searchTimeout.current);
       }
     };
-  }, [searchTerm]); // Loại bỏ search từ dependencies để tránh re-run effect khi search thay đổi
+  }, [searchTerm, search]); // Thêm search vào dependency array
   
   // Thêm useEffect mới để đóng thanh tìm kiếm khi resize về desktop
   useEffect(() => {
@@ -544,7 +560,7 @@ export default function Header({ toggleSidebar, userData: headerUserData, isAuth
                     
                     {!isSearching && !searchError && searchResults.length === 0 && searchTerm && (
                       <div className="p-3 md:p-5 text-center text-gray-500 text-sm md:text-base">
-                        Không tìm thấy kết quả nào phù hợp với "{searchTerm}"
+                        Không tìm thấy kết quả nào phù hợp với &quot;{searchTerm}&quot;
                       </div>
                     )}
 
@@ -653,7 +669,7 @@ export default function Header({ toggleSidebar, userData: headerUserData, isAuth
                     )}
                   </div>
                   <span className="text-xs md:text-sm font-medium text-gray-800 mr-0.5 md:mr-1 hidden sm:block max-w-[100px] truncate">
-                    {typeof window !== 'undefined' && localStorage.getItem('userFullName') ? localStorage.getItem('userFullName') : (headerUserData?.full_name || 'User')}
+                    {isLoggedIn ? (userData?.fullName || headerUserData?.full_name || 'User') : 'User'}
                   </span>
                   <ChevronDown className="w-3 h-3 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
                 </div>

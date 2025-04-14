@@ -1,0 +1,13 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow crawling of administrative areas
+Disallow: /api/
+Disallow: /login/
+Disallow: /register/
+Disallow: /forgot-password/
+Disallow: /dashboard/
+
+# Sitemap location
+Sitemap: https://hsabook.vn/sitemap.xml 
