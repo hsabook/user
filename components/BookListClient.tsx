@@ -306,7 +306,7 @@ const BookListClient = () => {
               
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 // Hiển thị nhiều nhất 5 trang và giữ trang hiện tại ở giữa nếu có thể
-                let pageToShow;
+                let pageToShow: number;
                 if (totalPages <= 5) {
                   pageToShow = i + 1;
                 } else {
