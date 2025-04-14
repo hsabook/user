@@ -75,7 +75,7 @@ const RecentAccess = () => {
         setError(null);
       } catch (err) {
         console.error('Error fetching recent books:', err);
-        setError('Không thể tải danh sách sách truy cập gần đây');
+        setError('Bạn cần đăng nhập để xem danh sách sách truy cập gần đây');
       } finally {
         setIsLoading(false);
       }

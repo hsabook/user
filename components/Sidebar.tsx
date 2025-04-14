@@ -100,7 +100,7 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
         "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
 
       // Redirect về trang login
-      router.push("/login");
+      router.push("/");
     }
   };
 

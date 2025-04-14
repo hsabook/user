@@ -115,7 +115,7 @@ export async function forgotPassword(email: string) {
 export function isAuthenticated() {
   if (typeof window === 'undefined') return false;
   
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('accessToken');
   return !!token;
 }
 
@@ -123,7 +123,7 @@ export function isAuthenticated() {
 export function logout() {
   if (typeof window === 'undefined') return;
   
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('userFullName');
   localStorage.removeItem('username');
 }
