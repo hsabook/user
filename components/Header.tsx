@@ -288,7 +288,7 @@ export default function Header({ toggleSidebar, userData: headerUserData, isAuth
         clearTimeout(searchTimeout.current);
       }
     };
-  }, [searchTerm, search]); // Thêm search vào dependency array
+  }, [searchTerm]); // Thêm search vào dependency array
   
   // Thêm useEffect mới để đóng thanh tìm kiếm khi resize về desktop
   useEffect(() => {
@@ -316,11 +316,12 @@ export default function Header({ toggleSidebar, userData: headerUserData, isAuth
     const value = e.target.value;
     setSearchTerm(value);
     
-    if (value === '') {
-      setShowResults(false);
-    } else {
-      setShowResults(true);
-    }
+    // Không tự động đóng modal khi xóa hết nội dung
+    // if (value === '') {
+    //   setShowResults(false);
+    // } else {
+    //   setShowResults(true);
+    // }
   };
   
   // Mở modal thông tin người dùng và fetch dữ liệu
@@ -331,7 +332,8 @@ export default function Header({ toggleSidebar, userData: headerUserData, isAuth
   // Xóa tìm kiếm
   const clearSearch = () => {
     setSearchTerm('');
-    setShowResults(false);
+    // Không đóng modal tìm kiếm khi xóa
+    // setShowResults(false);
   };
 
   // Mở dropdown khi click vào ô tìm kiếm

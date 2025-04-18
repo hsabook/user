@@ -161,11 +161,11 @@ const NewestBooks = () => {
   };
 
   return (
-    <div className="mt-12 mb-10 relative">
+    <div className="mt-8 mb-12 relative">
       {/* Background với hiệu ứng gradient mờ */}
       <div className="absolute inset-0 bg-gradient-to-r from-green-50 via-green-100/30 to-green-50/20 rounded-xl -z-10"></div>
       
-      <div className="p-4 sm:p-6 backdrop-blur-sm rounded-xl border border-green-200/50 shadow-lg">
+      <div className="p-6 sm:p-8 backdrop-blur-sm rounded-xl border border-green-200/50 shadow-lg">
         <div className="flex justify-between items-center mb-4 sm:mb-6">
           <h2 className="text-xl sm:text-2xl font-semibold text-green-700 flex items-center">
             <span className="inline-block w-2 h-8 bg-green-500 rounded-full mr-2 sm:mr-3"></span>
@@ -216,7 +216,7 @@ const NewestBooks = () => {
         {!loading && books.length > 0 && (
           <div 
             ref={scrollContainerRef}
-            className="flex gap-3 sm:gap-5 overflow-x-auto pb-4 hide-scrollbar"
+            className="flex gap-3 sm:gap-5 overflow-x-auto pb-[3.5rem] hide-scrollbar"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {books.map((book) => (

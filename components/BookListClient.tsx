@@ -40,7 +40,7 @@ const BookListClient = () => {
     try {
       setLoading(true);
       const result = await getBooks({
-        take: 100, // Lấy nhiều sách hơn để filter trên client
+        take: 20, // Lấy nhiều sách hơn để filter trên client
         page: 1,
         sort_field: 'created_at',
         sort_type: 'DESC'

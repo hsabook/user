@@ -1,8 +1,6 @@
 import RecentAccess from '@/components/RecentAccess';
 import ActivatedBooks from '@/components/ActivatedBooks';
 import NewestBooks from '@/components/NewestBooks';
-import Calendar from '@/components/Calendar';
-import PopularCourses from '@/components/PopularCourses';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -26,20 +24,21 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <div>
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left Column */}
-        <div className="col-span-1 md:col-span-2">
-          <RecentAccess />
-          <ActivatedBooks />
-          <NewestBooks />
-        </div>
+      {/* Hiển thị đầy đủ chiều rộng cho các thành phần */}
+      <div className="space-y-8">
+        {/* Truy cập gần đây */}
+        <RecentAccess />
         
-        {/* Right Column */}
-        <div className="col-span-1">
-          <Calendar />
-          <div className="mt-8">
-            <PopularCourses />
+        {/* Layout lưới cho sách đã kích hoạt và sách mới */}
+        <div className="flex flex-col gap-2">
+          {/* Sách đã kích hoạt */}
+          <div className="flex-1">
+            <ActivatedBooks />
+          </div>
+          
+          {/* Sách mới */}
+          <div className="flex-1">
+            <NewestBooks />
           </div>
         </div>
       </div>
