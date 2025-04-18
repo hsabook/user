@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowUpRightIcon } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 // Interface cho dữ liệu sách từ API
@@ -171,14 +171,19 @@ const NewestBooks = () => {
             <span className="inline-block w-2 h-8 bg-green-500 rounded-full mr-2 sm:mr-3"></span>
             Danh sách sách
           </h2>
-          <div className="flex gap-2 sm:gap-3">
+          <div className="flex gap-2 sm:gap-3 items-center hidden lg:flex">
+            <Link href="/books" className="mr-2 text-green-600 hover:text-green-700 transition-colors hidden sm:flex items-center">
+              <span className="font-medium text-sm">Xem tất cả</span>
+              <ArrowUpRightIcon className="w-4 h-4 ml-1" />
+            </Link>
             <button 
               onClick={scrollPrev}
               className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/80 border border-green-300 text-green-700 shadow-sm hover:bg-green-50 hover:shadow transition-all duration-300"
               aria-label="Previous"
               disabled={loading}
             >
-              <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
+              <ChevronLeft size={18} className="sm:w-5 sm:h-5 hidden sm:block" />
+              <span className="sm:hidden text-xs font-bold">←</span>
             </button>
             <button 
               onClick={scrollNext}
@@ -186,7 +191,8 @@ const NewestBooks = () => {
               aria-label="Next"
               disabled={loading}
             >
-              <ChevronRight size={18} className="sm:w-5 sm:h-5" />
+              <ChevronRight size={18} className="sm:w-5 sm:h-5 hidden sm:block" />
+              <span className="sm:hidden text-xs font-bold">→</span>
             </button>
           </div>
         </div>
@@ -214,72 +220,80 @@ const NewestBooks = () => {
 
         {/* Danh sách sách */}
         {!loading && books.length > 0 && (
-          <div 
-            ref={scrollContainerRef}
-            className="flex gap-3 sm:gap-5 overflow-x-auto pb-[3.5rem] hide-scrollbar"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {books.map((book) => (
-              <Link href={`/books/${book.id}`} key={book.id} className="flex-shrink-0 w-48 sm:w-64">
-                <div className="group backdrop-blur-md bg-white/30 rounded-2xl overflow-hidden border border-green-100/50 hover:shadow-xl hover:border-green-200 hover:bg-white/50 transition-all duration-300 h-full flex flex-col">
-                  <div className="relative h-48 sm:h-64 overflow-hidden">
-                    {book.avatar ? (
-                      <>
-                        {/* Hiệu ứng glow phía sau hình ảnh */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-green-300/20 to-transparent z-0"></div>
-                        <Image
-                          src={book.avatar}
-                          alt={book.name}
-                          fill
-                          className="object-contain z-10 group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-green-800/60 bg-green-50/50">
-                        <span>Không có ảnh</span>
-                      </div>
-                    )}
-                    
-                    {/* Tag lớp nằm ở góc phải trên */}
-                    {book.book_tags && book.book_tags.length > 0 && book.book_tags.some(tag => tag.tag.name.includes('Lớp')) && (
-                      <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-green-600/90 text-white text-xs font-medium px-2 py-0.5 sm:py-1 rounded-md backdrop-blur-sm z-20">
-                        {book.book_tags.find(tag => tag.tag.name.includes('Lớp'))?.tag.name}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-3 sm:p-4 flex-1 flex flex-col">
-                    <h3 className="font-medium text-sm sm:text-base line-clamp-2 mb-1 sm:mb-2">{book.name}</h3>
-                    <div className="flex gap-1 sm:gap-2 flex-wrap mt-1">
-                      <span className="inline-block bg-green-100 text-green-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-md">
-                        {book.subject}
-                      </span>
-                      {book.publishing_house && (
-                        <span className="inline-block bg-blue-100 text-blue-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-md">
-                          {book.publishing_house}
-                        </span>
-                      )}
-                    </div>
-                    <div className="line-clamp-2 text-xs sm:text-sm text-gray-600 mt-2">
-                      {book.description ? (
-                        <div dangerouslySetInnerHTML={{ 
-                          __html: book.description.substring(0, 60) + (book.description.length > 60 ? '...' : '') 
-                        }} />
+          <>
+            <div 
+              ref={scrollContainerRef}
+              className="flex gap-3 sm:gap-5 overflow-x-auto pb-[3.5rem] hide-scrollbar"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {books.map((book) => (
+                <Link href={`/books/${book.id}`} key={book.id} className="flex-shrink-0 w-48 sm:w-64">
+                  <div className="group backdrop-blur-md bg-white/30 rounded-2xl overflow-hidden border border-green-100/50 hover:shadow-xl hover:border-green-200 hover:bg-white/50 transition-all duration-300 h-full flex flex-col">
+                    <div className="relative h-48 sm:h-64 overflow-hidden">
+                      {book.avatar ? (
+                        <>
+                          {/* Hiệu ứng glow phía sau hình ảnh */}
+                          <div className="absolute inset-0 bg-gradient-to-b from-green-300/20 to-transparent z-0"></div>
+                          <Image
+                            src={book.avatar}
+                            alt={book.name}
+                            fill
+                            className="object-contain z-10 group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </>
                       ) : (
-                        <p>Sách {book.name}</p>
+                        <div className="w-full h-full flex items-center justify-center text-green-800/60 bg-green-50/50">
+                          <span>Không có ảnh</span>
+                        </div>
+                      )}
+                      
+                      {/* Tag lớp nằm ở góc phải trên */}
+                      {book.book_tags && book.book_tags.length > 0 && book.book_tags.some(tag => tag.tag.name.includes('Lớp')) && (
+                        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-green-600/90 text-white text-xs font-medium px-2 py-0.5 sm:py-1 rounded-md backdrop-blur-sm z-20">
+                          {book.book_tags.find(tag => tag.tag.name.includes('Lớp'))?.tag.name}
+                        </div>
                       )}
                     </div>
-                    <div className="mt-auto pt-2 sm:pt-3 text-right">
-                      <span className="text-green-600 text-xs sm:text-sm font-medium inline-flex items-center">
-                        Xem chi tiết
-                        <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5" />
-                      </span>
+                    
+                    <div className="p-3 sm:p-4 flex-1 flex flex-col">
+                      <h3 className="font-medium text-sm sm:text-base line-clamp-2 mb-1 sm:mb-2">{book.name}</h3>
+                      <div className="flex gap-1 sm:gap-2 flex-wrap mt-1">
+                        <span className="inline-block bg-green-100 text-green-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-md">
+                          {book.subject}
+                        </span>
+                        {book.publishing_house && (
+                          <span className="inline-block bg-blue-100 text-blue-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-md">
+                            {book.publishing_house}
+                          </span>
+                        )}
+                      </div>
+                      <div className="line-clamp-2 text-xs sm:text-sm text-gray-600 mt-2">
+                        {book.description ? (
+                          <div dangerouslySetInnerHTML={{ 
+                            __html: book.description.substring(0, 60) + (book.description.length > 60 ? '...' : '') 
+                          }} />
+                        ) : (
+                          <p>Sách {book.name}</p>
+                        )}
+                      </div>
+                      <div className="mt-auto pt-2 sm:pt-3 text-right">
+                        <span className="text-green-600 text-xs sm:text-sm font-medium inline-flex items-center">
+                          Xem chi tiết
+                          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5 hidden sm:inline" />
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center mt-4 sm:hidden">
+              <Link href="/book-list" className="inline-flex items-center justify-center px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium hover:bg-green-200 transition-colors">
+                Xem tất cả sách
+                <ArrowUpRightIcon className="w-3.5 h-3.5 ml-1" />
               </Link>
-            ))}
-          </div>
+            </div>
+          </>
         )}
       </div>
 

@@ -191,7 +191,7 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
             {isLoggedIn && sidebarUserData?.full_name ? sidebarUserData.full_name : "Khách"}
           </p>
           <p className="text-xs text-gray-500 truncate">
-            {isLoggedIn && sidebarUserData?.username ? `@${sidebarUserData.username}` : "Chưa đăng nhập"}
+            {isLoggedIn && localStorage.getItem("username") ? `@${localStorage.getItem("username")}` : "Chưa đăng nhập"}
           </p>
         </div>
       </div>
