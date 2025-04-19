@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import Image from "next/image";
 import {
   FileText,
@@ -13,6 +13,7 @@ import {
   Loader2,
   Book,
   ChevronRight,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { mockData } from "@/lib/mockData";
@@ -31,23 +32,181 @@ interface Comment {
   timestamp: string;
   isTeacher?: boolean;
   image?: string;
+  replies?: Comment[];
 }
 
 interface ChapterDetailComponentProps {
   chapterId: string;
   comments?: Comment[];
   bookId: string;
+  onAddComment?: (content: string, parentId?: string) => void;
 }
+
+// Thêm hàm formatTimeAgo để hiển thị thời gian từ lúc comment đến hiện tại
+const formatTimeAgo = (timestamp: string): string => {
+  try {
+    // In ra giá trị timestamp để debug
+    console.log("Original timestamp:", timestamp);
+    
+    const now = new Date();
+    let commentTime: Date;
+    
+    // Kiểm tra nếu timestamp có định dạng "hh:mm dd/MM/yyyy"
+    if (timestamp.match(/^\d{1,2}:\d{1,2}\s\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+      // Phân tích timestamp theo định dạng "hh:mm dd/MM/yyyy"
+      const [timePart, datePart] = timestamp.split(' ');
+      const [hour, minute] = timePart.split(':').map(Number);
+      const [day, month, year] = datePart.split('/').map(Number);
+      
+      // Tạo đối tượng Date với các giá trị đã phân tích (lưu ý tháng trong JavaScript bắt đầu từ 0)
+      commentTime = new Date(year, month - 1, day, hour, minute);
+      console.log("Parsed custom date format:", commentTime);
+    } else {
+      commentTime = new Date(timestamp);
+    }
+    
+    // Kiểm tra timestamp hợp lệ
+    if (isNaN(commentTime.getTime())) {
+      console.log("Invalid timestamp format");
+      
+      // Thử phân tích timestamp theo các định dạng khác
+      // Nếu timestamp là dạng timestamp số
+      if (!isNaN(Number(timestamp))) {
+        const numericTimestamp = Number(timestamp);
+        // Kiểm tra nếu là timestamp milliseconds
+        if (numericTimestamp > 1000000000000) {
+          const newCommentTime = new Date(numericTimestamp);
+          if (!isNaN(newCommentTime.getTime())) {
+            console.log("Parsed as milliseconds timestamp");
+            return calculateTimeDifference(newCommentTime, now);
+          }
+        } 
+        // Kiểm tra nếu là timestamp seconds
+        else if (numericTimestamp > 1000000000) {
+          const newCommentTime = new Date(numericTimestamp * 1000);
+          if (!isNaN(newCommentTime.getTime())) {
+            console.log("Parsed as seconds timestamp");
+            return calculateTimeDifference(newCommentTime, now);
+          }
+        }
+      }
+      
+      // Nếu không phân tích được, trả về giá trị mặc định
+      return "vừa xong";
+    }
+    
+    return calculateTimeDifference(commentTime, now);
+  } catch (error) {
+    console.error("Error in formatTimeAgo:", error);
+    // Trong trường hợp có lỗi, trả về giá trị mặc định
+    return "vừa xong";
+  }
+};
+
+// Hàm tính toán sự khác biệt thời gian và trả về định dạng phù hợp
+const calculateTimeDifference = (commentTime: Date, now: Date): string => {
+  const diffInSeconds = Math.floor((now.getTime() - commentTime.getTime()) / 1000);
+  
+  // Nếu khác biệt thời gian là âm (do sai lệch đồng hồ hoặc timezone)
+  if (diffInSeconds < 0) {
+    return "vừa xong";
+  }
+  
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds} giây trước`;
+  }
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} phút trước`;
+  }
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours} giờ trước`;
+  }
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) {
+    return `${diffInDays} ngày trước`;
+  }
+  
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks < 4) {
+    return `${diffInWeeks} tuần trước`;
+  }
+  
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) {
+    return `${diffInMonths} tháng trước`;
+  }
+  
+  const diffInYears = Math.floor(diffInMonths / 12);
+  return `${diffInYears} năm trước`;
+};
+
+// Tạo component riêng cho phần video iframe
+const VideoIframe = memo(({ videoHtml, title }: { videoHtml: string, title: string }) => {
+  return (
+    <div className="mb-6">
+      <h2 className="text-lg font-medium text-gray-800 mb-2">
+        [Video] {title}
+      </h2>
+      <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4 relative">
+        <div
+          className="absolute inset-0 w-full h-full"
+          dangerouslySetInnerHTML={{
+            __html: videoHtml.replace(
+              "<iframe",
+              '<iframe style="width:100%; height:100%; border:0;"'
+            ),
+          }}
+        />
+      </div>
+    </div>
+  );
+});
+
+VideoIframe.displayName = 'VideoIframe';
+
+// Tạo component riêng cho phần video thumbnail
+const VideoThumbnail = memo(({ coverImage, title, video }: { coverImage: string, title: string, video: string }) => {
+  return (
+    <div className="mb-6">
+      <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4 relative">
+        <Image
+          src={coverImage || "/images/default-cover.jpg"}
+          alt={title || "Video thumbnail"}
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          {/* Nút play cải tiến - lớn hơn, đậm hơn và có hiệu ứng */}
+          <div className="w-20 h-20 bg-blue-600 bg-opacity-90 rounded-full flex items-center justify-center shadow-lg hover:bg-opacity-100 hover:scale-105 transition-all duration-200 cursor-pointer">
+            <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[20px] border-l-white border-b-[12px] border-b-transparent ml-2"></div>
+          </div>
+        </div>
+      </div>
+      <h2 className="text-lg font-medium text-gray-800 mb-2">
+        [Video] {title}
+      </h2>
+    </div>
+  );
+});
+
+VideoThumbnail.displayName = 'VideoThumbnail';
 
 const ChapterDetail = ({
   chapterId,
   comments = [],
   bookId,
+  onAddComment,
 }: ChapterDetailComponentProps) => {
   const [activeTab, setActiveTab] = useState<
     "content" | "answers" | "subchapters"
   >("content");
   const [comment, setComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState<{id: string, userName: string} | null>(null);
   const { chapter, isLoading, error, fetchChapter } = useChapter();
   const {
     bookContent,
@@ -57,6 +216,11 @@ const ChapterDetail = ({
   } = useBookContent();
   const [filterType, setFilterType] = useState<"all" | "DE" | "CHUONG">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Thêm state và ref cho phần hiển thị bình luận
+  const [visibleComments, setVisibleComments] = useState(5); // Số lượng bình luận hiển thị ban đầu
+  const [isLoadingMore, setIsLoadingMore] = useState(false); // Trạng thái đang tải thêm bình luận
+  const commentsContainerRef = useRef<HTMLDivElement>(null); // Ref để scroll đến bình luận mới
 
   useEffect(() => {
     if (chapterId) {
@@ -80,16 +244,79 @@ const ChapterDetail = ({
     );
   };
 
-  // Dữ liệu mẫu cho thống kê và bình luận - trong thực tế sẽ lấy từ API
-  const mockStats = {
-    views: 124,
-    questions: 3,
-  };
-
   // Lọc danh sách nội dung theo điều kiện
   const filteredChapter = bookContent.filter((item) => item.id === chapterId);
   const listChapterItem =
     filteredChapter.length > 0 ? filteredChapter[0].children : [];
+
+  // Tính tổng số comment và replies
+  const totalComments = comments.reduce((total, comment) => {
+    // Đếm comment chính
+    let count = 1;
+    // Đếm các replies nếu có
+    if (comment.replies && comment.replies.length > 0) {
+      count += comment.replies.length;
+    }
+    return total + count;
+  }, 0);
+  
+  // Dữ liệu cho thống kê - views là mẫu, comments là thực tế
+  const mockStats = {
+    views: 124, // Giá trị mẫu, trong thực tế sẽ lấy từ API
+    questions: totalComments,
+  };
+
+  const handleSubmitComment = () => {
+    if (comment.trim() === "") return;
+    
+    if (onAddComment) {
+      onAddComment(comment, replyingTo?.id);
+      setComment("");
+      setReplyingTo(null);
+    } else {
+      console.log("Gửi bình luận:", comment);
+      setComment("");
+      setReplyingTo(null);
+    }
+  };
+
+  // Hàm bắt đầu phản hồi một bình luận
+  const handleReplyStart = (commentId: string, userName: string) => {
+    setReplyingTo({id: commentId, userName});
+    // Focus vào textarea
+    const textarea = document.getElementById('comment-textarea');
+    if (textarea) {
+      textarea.focus();
+    }
+  };
+
+  // Hàm hủy phản hồi
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+  };
+
+  // Thêm function để load thêm bình luận
+  const loadMoreComments = () => {
+    setIsLoadingMore(true);
+    // Giả lập việc tải dữ liệu (trong thực tế có thể gọi API)
+    setTimeout(() => {
+      setVisibleComments(prevCount => {
+        // Tăng số lượng bình luận hiển thị thêm 5
+        const newCount = prevCount + 5;
+        // Nếu đã hiển thị tất cả bình luận thì trả về tổng số bình luận
+        return newCount > comments.length ? comments.length : newCount;
+      });
+      setIsLoadingMore(false);
+    }, 500);
+  };
+  
+  // Scroll đến vị trí bình luận mới khi tải thêm
+  useEffect(() => {
+    if (isLoadingMore && commentsContainerRef.current) {
+      const { current } = commentsContainerRef;
+      current.scrollTop = current.scrollHeight;
+    }
+  }, [visibleComments, isLoadingMore]);
 
   if (isLoading) {
     return (
@@ -227,45 +454,16 @@ const ChapterDetail = ({
 
                   {/* Video content - trường hợp là iframe */}
                   {chapter?.video && isIframeVideo(chapter.video) && (
-                    <div className="mb-6">
-                      <h2 className="text-lg font-medium text-gray-800 mb-2">
-                        [Video] {chapter?.title}
-                      </h2>
-                      <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4 relative">
-                        <div
-                          className="absolute inset-0 w-full h-full"
-                          dangerouslySetInnerHTML={{
-                            __html: chapter.video.replace(
-                              "<iframe",
-                              '<iframe style="width:100%; height:100%; border:0;"'
-                            ),
-                          }}
-                        />
-                      </div>
-                    </div>
+                    <VideoIframe videoHtml={chapter.video} title={chapter?.title || ""} />
                   )}
 
                   {/* Video content - trường hợp là URL thông thường */}
                   {chapter?.video && !isIframeVideo(chapter.video) && (
-                    <div className="mb-6">
-                      <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4 relative">
-                        <Image
-                          src={chapter?.cover || "/images/default-cover.jpg"}
-                          alt={chapter?.title || "Video thumbnail"}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          {/* Nút play cải tiến - lớn hơn, đậm hơn và có hiệu ứng */}
-                          <div className="w-20 h-20 bg-blue-600 bg-opacity-90 rounded-full flex items-center justify-center shadow-lg hover:bg-opacity-100 hover:scale-105 transition-all duration-200 cursor-pointer">
-                            <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[20px] border-l-white border-b-[12px] border-b-transparent ml-2"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <h2 className="text-lg font-medium text-gray-800 mb-2">
-                        [Video] {chapter?.title}
-                      </h2>
-                    </div>
+                    <VideoThumbnail 
+                      coverImage={chapter?.cover || "/images/default-cover.jpg"}
+                      title={chapter?.title || ""}
+                      video={chapter.video}
+                    />
                   )}
 
                   {/* Attachments (nếu có) */}
@@ -583,7 +781,7 @@ const ChapterDetail = ({
               <div className="flex items-center">
                 <MessageCircle className="w-5 h-5 text-green-500 mr-2" />
                 <div>
-                  <p className="text-sm text-gray-500">Số lượt câu hỏi</p>
+                  <p className="text-sm text-gray-500">Số lượng bình luận</p>
                   <p className="font-medium">{mockStats.questions}</p>
                 </div>
               </div>
@@ -593,9 +791,12 @@ const ChapterDetail = ({
             <div className="bg-white p-5 rounded-xl shadow-sm">
               <h3 className="text-lg font-medium mb-4">Bình luận & Câu hỏi</h3>
 
-              <div className="space-y-6">
+              <div 
+                ref={commentsContainerRef} 
+                className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar"
+              >
                 {comments.length > 0 ? (
-                  comments.map((comment) => (
+                  comments.slice(0, visibleComments).map((comment) => (
                     <div
                       key={comment.id}
                       className="pb-5 border-b last:border-b-0 last:pb-0"
@@ -622,7 +823,7 @@ const ChapterDetail = ({
                             </h4>
                             <span className="ml-auto text-xs text-gray-500 flex items-center">
                               <Clock className="w-3 h-3 mr-1" />
-                              {comment.timestamp}
+                              {formatTimeAgo(comment.timestamp)}
                             </span>
                           </div>
                           <p className="text-gray-600 mt-1">
@@ -641,15 +842,90 @@ const ChapterDetail = ({
                               </div>
                             </div>
                           )}
-                          <div className="flex items-center mt-2">
+                          {/* <div className="flex items-center mt-2">
                             <button className="flex items-center text-green-600 text-sm mr-4">
                               <ThumbsUp className="w-4 h-4 mr-1" />
                               <span>Hữu ích</span>
                             </button>
-                            <button className="text-blue-600 text-sm">
+                            <button 
+                              onClick={() => handleReplyStart(comment.id, comment.user.name)}
+                              className="text-blue-600 text-sm"
+                            >
+                              Phản hồi
+                            </button>
+                          </div> */}
+                          
+                          <div className="flex items-center mt-2">
+                            <button 
+                              onClick={() => handleReplyStart(comment.id, comment.user.name)}
+                              className="text-blue-600 text-sm"
+                            >
                               Phản hồi
                             </button>
                           </div>
+                          
+                          {/* Hiển thị phản hồi nếu có */}
+                          {comment.replies && comment.replies.length > 0 && (
+                            <div className="mt-4 space-y-4 pl-4 border-l-2 border-gray-100">
+                              {comment.replies.map((reply) => (
+                                <div key={reply.id} className="flex items-start gap-3">
+                                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 relative">
+                                    <Image
+                                      src={reply.user.avatar}
+                                      alt={reply.user.name}
+                                      fill
+                                      sizes="32px"
+                                      className="object-cover"
+                                    />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center">
+                                      <h4 className="font-medium text-gray-800 text-sm">
+                                        {reply.user.name}
+                                        {reply.isTeacher && (
+                                          <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                                            {reply.user.role || "Giáo viên"}
+                                          </span>
+                                        )}
+                                      </h4>
+                                      <span className="ml-auto text-xs text-gray-500 flex items-center">
+                                        <Clock className="w-3 h-3 mr-1" />
+                                        {formatTimeAgo(reply.timestamp)}
+                                      </span>
+                                    </div>
+                                    <p className="text-gray-600 mt-1 text-sm">
+                                      {reply.content}
+                                    </p>
+                                    {reply.image && (
+                                      <div className="mt-2">
+                                        <div className="max-w-xs overflow-hidden rounded-lg">
+                                          <Image
+                                            src={reply.image}
+                                            alt="Reply attachment"
+                                            width={300}
+                                            height={180}
+                                            className="object-contain"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div className="flex items-center mt-2">
+                                      {/* <button className="flex items-center text-green-600 text-xs mr-4">
+                                        <ThumbsUp className="w-3 h-3 mr-1" />
+                                        <span>Hữu ích</span>
+                                      </button> */}
+                                      <button 
+                                        onClick={() => handleReplyStart(comment.id, comment.user.name)}
+                                        className="text-blue-600 text-xs"
+                                      >
+                                        Phản hồi
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -662,41 +938,79 @@ const ChapterDetail = ({
                     </p>
                   </div>
                 )}
+                
+                {/* Nút hiển thị thêm bình luận nếu còn bình luận chưa hiển thị */}
+                {visibleComments < comments.length && (
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={loadMoreComments}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md flex items-center transition-colors"
+                      disabled={isLoadingMore}
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <span>Đang tải...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Xem thêm {Math.min(5, comments.length - visibleComments)} bình luận</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Comment input */}
               <div className="mt-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 relative">
+                {replyingTo && (
+                  <div className="bg-blue-50 p-2 mb-2 rounded-lg flex items-center justify-between">
+                    <div className="text-sm text-blue-700">
+                      Đang phản hồi tới <span className="font-medium">{replyingTo.userName}</span>
+                    </div>
+                    <button 
+                      onClick={handleCancelReply}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                <div className="mt-2 flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
                     <Image
-                      src={mockData.avatar_link}
-                      alt="Your avatar"
-                      fill
-                      sizes="40px"
-                      className="object-cover"
+                      src={localStorage.getItem("userAvatar") || ""}
+                      alt="Avatar"
+                      width={36}
+                      height={36}
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="flex-1">
-                    <div className="border rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                      <textarea
-                        placeholder="Viết phản hồi..."
-                        className="w-full px-3 py-2 border-none focus:outline-none text-sm"
-                        rows={3}
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                      ></textarea>
-                      <div className="px-3 py-2 bg-gray-50 border-t flex justify-between items-center">
-                        <button className="text-gray-500 hover:text-gray-700">
-                          <ImageIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          className="bg-blue-600 text-white px-4 py-1 rounded-md text-sm font-medium flex items-center"
-                          disabled={!comment.trim()}
-                        >
-                          <Send className="w-4 h-4 mr-1" />
-                          Gửi
-                        </button>
-                      </div>
+                  <div className="flex-grow relative">
+                    <textarea
+                      id="comment-textarea"
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder={replyingTo ? `Phản hồi tới ${replyingTo.userName}...` : "Viết bình luận của bạn..."}
+                      className="w-full min-h-[80px] border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    ></textarea>
+                    <div className="flex justify-between items-center mt-2">
+                      {/* <button className="text-gray-500 hover:text-gray-700 ">
+                        <ImageIcon className="h-5 w-5" />
+                      </button> */}
+                      <button
+                        onClick={handleSubmitComment}
+                        disabled={!comment.trim()}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                          !comment.trim()
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : "bg-blue-600 text-white hover:bg-blue-700"
+                        } transition-colors`}
+                      >
+                        <Send className="h-4 w-4" />
+                        <span>{replyingTo ? "Phản hồi" : "Gửi"}</span>
+                      </button>
                     </div>
                   </div>
                 </div>
