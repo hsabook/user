@@ -102,12 +102,12 @@ export default function Login() {
           <Image
             src={
               imageError
-                ? "/images/teacher.jpg"
+                ? "/images/teacher.png"
                 : "https://s3-alpha-sig.figma.com/img/e3c7/2251/266af941e257aaf407a189e3f1034437?Expires=1743984000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=n1Y2-Kue38sNAwhnmZ8ttK0Pl~-rT0ayKjAf8pfKZt~3zkdVaCi7M8V4ZltHCREGSt2-h5LcrbCdDiAUsOujcMszOHQm~X-bc8~2y6qExUd3mfq8-BcPsXZg5LdXCChIbDlrRPRvJl6cyf~VHTxbayk3Eq5vqfF4VDfKZ9Oz8U-lr8ytH~PqBIpPLkdaxsl6~9T7zBWpmMWrUxZIQ~gJWLyV9hikPRo-SFzUHVAA3Ss~7~zAeCG~DV7TxpOj-ZM3t6k3bOoZU~fku1zX6-S57BO4i7zJW3rQMtAVc-zimorHIoYjJWNJeX2qjUV0wM6zUQ6IfDdGMS6AiL0M0hFC-w__"
             }
             alt="Giáo viên nữ mặc áo vàng cầm sách"
             fill
-            style={{ objectFit: "cover", objectPosition: " 70% center" }}
+            style={{ objectFit: "contain", objectPosition: " 70% center" }}
             priority
             onError={() => setImageError(true)}
           />

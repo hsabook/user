@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRightIcon, BookOpenIcon, SearchIcon, FilterIcon } from 'lucide-react';
+import { ArrowRightIcon, BookOpenIcon, SearchIcon, FilterIcon, ChevronRight } from 'lucide-react';
 import { getBooks } from '@/services/bookService';
 import { formatDate, sanitizeAndExtractText } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -126,12 +126,14 @@ const BookListClient = () => {
   return (
     <div className="relative mt-8 mb-12">
       {/* Background với hiệu ứng gradient mờ */}
-      <div className="absolute inset-0 bg-gradient-to-r from-green-50/80 via-blue-50/30 to-green-50/70 rounded-xl -z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-green-50 via-green-100/30 to-green-50/20 rounded-xl -z-10"></div>
       
-      <div className="p-6 backdrop-blur-sm rounded-xl border border-green-100/50 shadow-lg">
+      <div className="p-6 sm:p-8 backdrop-blur-sm rounded-xl border border-green-200/50 shadow-lg">
         <div className="flex items-center mb-6">
-          <div className="w-2 h-8 bg-green-500 rounded-full mr-3"></div>
-          <h2 className="text-2xl font-semibold text-gray-800">Danh sách sách</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-green-700 flex items-center">
+            <span className="inline-block w-2 h-8 bg-green-500 rounded-full mr-2 sm:mr-3"></span>
+            Danh sách sách
+          </h2>
         </div>
 
         {/* Thanh tìm kiếm và bộ lọc */}
@@ -178,21 +180,21 @@ const BookListClient = () => {
 
         {/* Hiển thị lỗi */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50/80 backdrop-blur-sm text-red-600 rounded-xl text-sm border border-red-100">
-            {error}
+          <div className="bg-red-100/80 backdrop-blur-sm border border-red-200 text-red-700 p-4 mb-6 rounded-lg" role="alert">
+            <p>{error}</p>
           </div>
         )}
         
         {/* Hiển thị loading */}
         {loading && (
           <div className="flex justify-center items-center min-h-[300px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-200 border-t-green-600"></div>
+            <div className="animate-spin rounded-full h-14 w-14 border-4 border-green-200 border-t-green-600"></div>
           </div>
         )}
         
         {/* Hiển thị khi không có sách */}
         {!loading && displayedBooks.length === 0 && !error && (
-          <div className="text-center text-gray-500 min-h-[300px] flex flex-col items-center justify-center backdrop-blur-sm bg-white/30 rounded-xl border border-green-100">
+          <div className="text-center text-gray-500 min-h-[200px] flex flex-col items-center justify-center backdrop-blur-sm bg-white/30 rounded-xl border border-green-100">
             <Image 
               src="/images/empty-books.svg" 
               alt="Không có sách" 
@@ -212,75 +214,51 @@ const BookListClient = () => {
         
         {/* Danh sách sách */}
         {!loading && displayedBooks.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 mx-auto justify-items-center">
             {displayedBooks.map((book) => (
-              <Link href={`/books/${book.id}`} key={book.id} className="group">
-                <div className="h-full backdrop-blur-md bg-white/30 rounded-2xl overflow-hidden border border-green-100/50 hover:shadow-xl hover:border-green-200 hover:bg-white/50 transition-all duration-300 flex flex-col">
-                  {/* Book Cover */}
-                  <div className="relative h-48 overflow-hidden">
-                    {/* Hiệu ứng glow phía sau hình ảnh */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-50/40 via-green-100/20 to-blue-50/30 z-0"></div>
-                    
+              <Link href={`/books/${book.id}`} key={book.id} className="w-full max-w-[280px] sm:max-w-[240px] md:max-w-[220px]">
+                <div className="group backdrop-blur-md bg-white/30 rounded-2xl overflow-hidden border-2 border-green-200/70 hover:border-green-300 hover:shadow-xl hover:shadow-green-100/50 hover:bg-white/50 transition-all duration-300 h-full flex flex-col">
+                  <div className="relative aspect-[3/3] overflow-hidden bg-white/50 flex items-start justify-center rounded-t-2xl">
                     {book.avatar ? (
-                      <div className="relative w-full h-full flex justify-center items-center p-3">
-                        <div className="relative w-[85%] h-[90%] rounded-lg shadow-lg overflow-hidden transform group-hover:scale-105 transition-all duration-500">
-                          {/* Tạo đổ bóng trang sách */}
-                          <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-gray-300/50 to-transparent z-10"></div>
-                          <div className="absolute bottom-0 inset-x-0 h-4 bg-gradient-to-t from-gray-300/40 to-transparent z-10 rounded-b-lg"></div>
-                          
+                      <div className="w-full h-full pt-0">
+                        <div className="relative w-full h-full">
                           <Image
                             src={book.avatar}
                             alt={book.name}
                             fill
-                            className="object-cover z-5 border border-gray-200/60 rounded-lg"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-contain object-top z-10 group-hover:scale-105 transition-transform duration-300"
+                            sizes="(max-width: 640px) 280px, (max-width: 768px) 240px, 220px"
                           />
-                          
-                          {/* Hiệu ứng phản chiếu ánh sáng */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent z-10 opacity-60 group-hover:opacity-30 transition-opacity duration-500"></div>
                         </div>
                       </div>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-green-800/60 bg-green-50/50">
-                        <div className="w-[85%] h-[90%] rounded-lg border border-green-200/50 bg-white/70 flex items-center justify-center shadow-md">
-                          <BookOpenIcon className="w-16 h-16 opacity-30 text-green-600" />
-                        </div>
+                        <span>Không có ảnh</span>
                       </div>
                     )}
                   </div>
                   
-                  {/* Book Info */}
-                  <div className="p-5 flex-1 flex flex-col">
-                    <h3 className="font-semibold text-gray-800 text-lg line-clamp-2 mb-2 group-hover:text-green-700 transition-colors">
-                      {book.name}
-                    </h3>
-                    
-                    {/* Môn học */}
-                    {book.subject && (
-                      <div className="bg-green-50/50 rounded-lg px-3 py-1.5 text-sm text-green-700 inline-flex items-center self-start mb-2">
-                        <BookOpenIcon className="h-3.5 w-3.5 mr-1" />
-                        <span>{book.subject}</span>
-                      </div>
-                    )}
-                    
-                    {/* Mô tả ngắn */}
-                    {book.description && (
-                      <p className="text-sm text-gray-600 line-clamp-3 mt-2">
-                        {sanitizeAndExtractText(book.description)}
-                      </p>
-                    )}
-                    
-                    {/* Ngày tạo */}
-                    <div className="mt-auto pt-3 text-sm text-gray-500">
-                      Ngày tạo: {formatDate(book.created_at)}
+                  <div className="p-3 flex-1 flex flex-col bg-gradient-to-b from-white/30 to-green-50/30">
+                    <h3 className="font-medium text-sm line-clamp-2 mb-1.5 text-green-900/90">{book.name}</h3>
+                    <div className="flex gap-1.5 flex-wrap mt-1">
+                      <span className="inline-block bg-green-100/70 text-green-700 text-xs px-1.5 py-0.5 rounded-md border border-green-200/50">
+                        {book.subject}
+                      </span>
                     </div>
-                    
-                    {/* Nút xem chi tiết */}
-                    <div className="mt-4 pt-3 border-t border-green-100">
-                      <div className="text-green-600 text-sm font-medium group-hover:text-green-700 flex items-center justify-between">
-                        <span>Xem chi tiết</span>
-                        <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </div>
+                    <div className="line-clamp-2 text-xs text-gray-600 mt-2">
+                      {book.description ? (
+                        <div dangerouslySetInnerHTML={{ 
+                          __html: book.description.substring(0, 80) + (book.description.length > 80 ? '...' : '') 
+                        }} />
+                      ) : (
+                        <p>Sách {book.name}</p>
+                      )}
+                    </div>
+                    <div className="mt-auto pt-2 text-right">
+                      <span className="text-green-600 text-xs font-medium inline-flex items-center group-hover:text-green-700 transition-colors duration-300">
+                        Xem chi tiết
+                        <ChevronRight className="w-3.5 h-3.5 ml-0.5 hidden sm:inline group-hover:translate-x-0.5" />
+                      </span>
                     </div>
                   </div>
                 </div>

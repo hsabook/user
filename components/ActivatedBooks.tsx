@@ -237,7 +237,7 @@ const ActivatedBooks = () => {
 
         {/* Danh sách sách */}
         {!loading && books.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {books.map((activatedBook) => {
               // Tính ngày hết hạn dựa trên ngày kích hoạt và số tháng
               const expiryDate = calculateExpiryDate(
@@ -251,15 +251,15 @@ const ActivatedBooks = () => {
                   key={activatedBook.id}
                   className="group"
                 >
-                  <div className="h-full backdrop-blur-md bg-white/30 rounded-2xl overflow-hidden border border-green-100/50 hover:shadow-xl hover:border-green-200 hover:bg-white/50 transition-all duration-300 flex flex-col">
+                  <div className="h-full max-w-[260px] mx-auto backdrop-blur-md bg-white/30 rounded-2xl overflow-hidden border border-green-100/50 hover:shadow-xl hover:border-green-200 hover:bg-white/50 transition-all duration-300 flex flex-col">
                     {/* Book Cover */}
-                    <div className="relative h-48 overflow-hidden group">
+                    <div className="relative h-56 overflow-hidden group">
                       {/* Hiệu ứng glow phía sau hình ảnh */}
                       <div className="absolute inset-0 bg-gradient-to-t from-blue-50/40 via-green-100/20 to-blue-50/30 z-0"></div>
 
                       {activatedBook.book.avatar ? (
-                        <div className="relative w-full h-full flex justify-center items-center p-3">
-                          <div className="relative w-[85%] h-[90%] rounded-lg shadow-lg overflow-hidden transform group-hover:scale-105 transition-all duration-500">
+                        <div className="relative w-full h-full flex justify-center items-center overflow-hidden">
+                          <div className="relative w-full h-full rounded-lg shadow-md overflow-hidden transform group-hover:scale-105 transition-all duration-500">
                             {/* Tạo đổ bóng trang sách */}
                             <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-gray-300/50 to-transparent z-10"></div>
                             <div className="absolute bottom-0 inset-x-0 h-4 bg-gradient-to-t from-gray-300/40 to-transparent z-10 rounded-b-lg"></div>
@@ -268,8 +268,9 @@ const ActivatedBooks = () => {
                               src={activatedBook.book.avatar}
                               alt={activatedBook.book.name}
                               fill
-                              className="object-cover z-5 border border-gray-200/60 rounded-lg"
+                              className="object-fill object-center z-5 border-0 rounded-lg"
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              priority
                             />
 
                             {/* Hiệu ứng phản chiếu ánh sáng */}
@@ -300,7 +301,7 @@ const ActivatedBooks = () => {
                     </div>
 
                     {/* Book Info */}
-                    <div className="p-5 flex-1 flex flex-col">
+                    <div className="p-4 flex-1 flex flex-col">
                       <h3 className="font-semibold text-gray-800 text-lg line-clamp-2 mb-2 group-hover:text-green-700 transition-colors">
                         {activatedBook.book.name}
                       </h3>
