@@ -15,6 +15,7 @@ interface Book {
   description: string;
   avatar: string;
   subject: string;
+  category: string;
   created_at: string;
   expiration_date: number;
   code_id: number;
@@ -27,13 +28,13 @@ const BookListClient = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedSubject, setSelectedSubject] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   
   // Số sách mỗi trang
   const BOOKS_PER_PAGE = 12;
   
-  // Danh sách các môn học để lọc
-  const subjects = ['Toán', 'Vật lý', 'Hóa học', 'Sinh học', 'Ngữ văn', 'Lịch sử', 'Địa lý', 'Tiếng Anh'];
+  // Danh sách các loại sách để lọc
+  const categories = ['HSA', 'TSA', 'VACT', 'OTHER'];
 
   // Hàm fetch danh sách sách (chỉ gọi 1 lần)
   const fetchBooks = async () => {
@@ -43,7 +44,8 @@ const BookListClient = () => {
         take: 20, // Lấy nhiều sách hơn để filter trên client
         page: 1,
         sort_field: 'created_at',
-        sort_type: 'DESC'
+        sort_type: 'DESC',
+        category: selectedCategory || undefined // Thêm tham số category nếu có
       });
       
       if (result && result.data && result.data.data) {
@@ -64,7 +66,7 @@ const BookListClient = () => {
 
   // Filter và tính toán phân trang dựa trên dữ liệu hiện có
   const filteredBooks = useMemo(() => {
-    // Áp dụng filter theo search term và subject
+    // Áp dụng filter theo search term và category
     let result = [...allBooks];
     
     if (searchTerm.trim()) {
@@ -75,12 +77,12 @@ const BookListClient = () => {
       );
     }
     
-    if (selectedSubject) {
-      result = result.filter(book => book.subject === selectedSubject);
+    if (selectedCategory) {
+      result = result.filter(book => book.category === selectedCategory);
     }
     
     return result;
-  }, [allBooks, searchTerm, selectedSubject]);
+  }, [allBooks, searchTerm, selectedCategory]);
   
   // Tính toán phân trang
   useEffect(() => {
@@ -99,27 +101,29 @@ const BookListClient = () => {
     return filteredBooks.slice(startIndex, startIndex + BOOKS_PER_PAGE);
   }, [filteredBooks, currentPage]);
 
-  // Xử lý khi component mount
+  // Xử lý khi component mount hoặc selectedCategory thay đổi
   useEffect(() => {
     fetchBooks();
-  }, []);
+  }, [selectedCategory]);
 
   // Xử lý tìm kiếm
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+    // Khi người dùng tìm kiếm, ta đã lưu searchTerm vào state
+    // Bởi vì selectedCategory đã được xử lý trong useEffect, ta không cần gọi fetchBooks ở đây
   };
 
-  // Xử lý thay đổi môn học
-  const handleSubjectChange = (subject: string) => {
-    setSelectedSubject(subject);
+  // Xử lý thay đổi loại sách
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
     setCurrentPage(1); // Reset về trang 1 khi thay đổi bộ lọc
   };
 
   // Xóa bộ lọc
   const clearFilters = () => {
     setSearchTerm('');
-    setSelectedSubject('');
+    setSelectedCategory('');
     setCurrentPage(1);
   };
 
@@ -158,18 +162,18 @@ const BookListClient = () => {
             </div>
           </form>
 
-          {/* Bộ lọc môn học */}
+          {/* Bộ lọc loại sách */}
           <div className="flex-shrink-0 md:w-72">
             <div className="relative">
               <select
-                value={selectedSubject}
-                onChange={(e) => handleSubjectChange(e.target.value)}
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 className="w-full px-4 py-3 pl-10 appearance-none bg-white/80 backdrop-blur-sm border border-green-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="">Tất cả môn học</option>
-                {subjects.map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject}
+                <option value="">Tất cả loại sách</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    Sách {category === 'OTHER' ? 'Khác' : category}
                   </option>
                 ))}
               </select>
@@ -242,6 +246,9 @@ const BookListClient = () => {
                     <h3 className="font-medium text-sm line-clamp-2 mb-1.5 text-green-900/90">{book.name}</h3>
                     <div className="flex gap-1.5 flex-wrap mt-1">
                       <span className="inline-block bg-green-100/70 text-green-700 text-xs px-1.5 py-0.5 rounded-md border border-green-200/50">
+                        {book.category || 'Khác'}
+                      </span>
+                      <span className="inline-block bg-blue-100/70 text-blue-700 text-xs px-1.5 py-0.5 rounded-md border border-blue-200/50">
                         {book.subject}
                       </span>
                     </div>

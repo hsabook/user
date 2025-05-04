@@ -13,6 +13,7 @@ export async function getBooks(params?: BookQueryParams): Promise<BooksResponse>
       if (params.sort_type) url.searchParams.set('sort_type', params.sort_type);
       if (params.search) url.searchParams.set('search', params.search);
       if (params.subject) url.searchParams.set('subject', params.subject);
+      if (params.category) url.searchParams.set('category', params.category);
     }
 
     // Lấy access token từ localStorage (nếu có)

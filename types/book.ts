@@ -14,6 +14,7 @@ export interface Book {
   active: boolean;
   publishing_house: string;
   subject: string;
+  category: string;
   is_file: boolean;
   file_download: null | string;
   xlsx_files: XlsxFile[];
@@ -86,4 +87,5 @@ export interface BookQueryParams {
   sort_type?: 'ASC' | 'DESC';
   search?: string;
   subject?: string;
+  category?: string;
 } 
