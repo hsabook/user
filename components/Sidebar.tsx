@@ -15,11 +15,15 @@ import {
   CalendarDays,
   GraduationCap,
   Layers,
+  ChevronDown,
+  ChevronRight,
+  LibraryIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { useModal } from "@/contexts/ModalContext";
 import { usePathname, useRouter } from "next/navigation";
 import { isAuthenticated, logout } from "@/app/api/auth/authServices";
+import { mockResponseDataListBook } from "@/lib/mockResponseDataListBook";
 
 interface SidebarProps {
   userData?: {
@@ -31,6 +35,7 @@ interface SidebarProps {
 
 const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
   const [activeLink, setActiveLink] = useState("/books");
+  const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false);
   const { openActivateModal } = useModal();
   const [userFullName, setUserFullName] = useState<string>("");
   const [username, setUsername] = useState<string>("");
@@ -128,22 +133,74 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
     return pathname === path;
   };
 
-  const menuItems = [
+  // Kiểm tra xem đường dẫn hiện tại có phải thuộc một trong các trang sách không
+  const isBookSectionActive = () => {
+    return pathname.includes('/books/');
+  };
+
+  // Lọc dữ liệu sách theo category
+  const getBooksByCategory = (category: string) => {
+    return mockResponseDataListBook.data.filter(book => book.category === category);
+  };
+
+  const hsaBooks = getBooksByCategory("HSA");
+  const tsaBooks = getBooksByCategory("TSA");
+  const vactBooks = getBooksByCategory("VACT");
+  const otherBooks = getBooksByCategory("OTHER");
+
+  // Định nghĩa kiểu dữ liệu cho menu items
+  interface MenuItem {
+    href: string;
+    icon: React.ReactNode;
+    text: string;
+    count?: number;
+  }
+
+  // Tự động mở dropdown khi đang ở trang sách
+  useEffect(() => {
+    if (isBookSectionActive()) {
+      setIsBookDropdownOpen(true);
+    }
+  }, [pathname]);
+
+  const menuItems: MenuItem[] = [
     { href: "/", icon: <Home className="w-5 h-5" />, text: "Trang chủ" },
     {
-      href: "/book-list",
-      icon: <BookOpen className="w-5 h-5" />,
-      text: "Danh sách sách",
-    },
-    {
       href: "/activated-books",
-      icon: <BookOpen className="w-5 h-5" />,
+      icon: <Book className="w-5 h-5" />,
       text: "Sách đã kích hoạt",
     },
     {
       href: "",
       icon: <GraduationCap className="w-5 h-5" />,
       text: "Khoá học (soon)",
+    },
+  ];
+
+  const bookSubmenuItems: MenuItem[] = [
+    {
+      href: "/books/hsa",
+      icon: <BookOpen className="w-5 h-5" />,
+      text: "Sách HSA",
+      count: hsaBooks.length
+    },
+    {
+      href: "/books/tsa",
+      icon: <BookOpen className="w-5 h-5" />,
+      text: "Sách TSA",
+      count: tsaBooks.length
+    },
+    {
+      href: "/books/vact",
+      icon: <BookOpen className="w-5 h-5" />,
+      text: "Sách VACT",
+      count: vactBooks.length
+    },
+    {
+      href: "/books/other",
+      icon: <BookOpen className="w-5 h-5" />,
+      text: "Sách khác",
+      count: otherBooks.length
     },
   ];
 
@@ -199,7 +256,90 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
       {/* Navigation Menu */}
       <nav className="flex-grow px-3">
         <ul>
-          {menuItems.map((item) => (
+          {/* Menu Trang chủ */}
+          <li className="mb-2">
+            <Link
+              href="/"
+              className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
+                isActive("/")
+                  ? "bg-white/70 text-green-700 shadow-sm border border-green-100/50"
+                  : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
+              }`}
+              onClick={() => setActiveLink("/")}
+            >
+              <span
+                className={`mr-3 ${
+                  isActive("/") ? "text-green-600" : ""
+                }`}
+              >
+                <Home className="w-5 h-5" />
+              </span>
+              <span className="flex-1">Trang chủ</span>
+            </Link>
+          </li>
+
+          {/* Dropdown menu cho Sách */}
+          <li className="mb-2">
+            <button
+              onClick={() => setIsBookDropdownOpen(!isBookDropdownOpen)}
+              className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${
+                isBookSectionActive()
+                  ? "bg-white/70 text-green-700 shadow-sm border border-green-100/50"
+                  : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
+              }`}
+            >
+              <span
+                className={`mr-3 ${
+                  isBookSectionActive() ? "text-green-600" : ""
+                }`}
+              >
+                <LibraryIcon className="w-5 h-5" />
+              </span>
+              <span className="flex-1">Danh sách sách</span>
+              <span className="ml-2">
+                {isBookDropdownOpen ? 
+                  <ChevronDown className="w-4 h-4" /> : 
+                  <ChevronRight className="w-4 h-4" />
+                }
+              </span>
+            </button>
+            
+            {/* Submenu */}
+            {isBookDropdownOpen && (
+              <ul className="pl-4 mt-1 space-y-1 animate-slideDown">
+                {bookSubmenuItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center px-4 py-2 rounded-xl transition-all duration-300 ${
+                        isActive(item.href)
+                          ? "bg-white/70 text-green-700 shadow-sm border border-green-100/50"
+                          : "text-gray-700 hover:bg-white/40 hover:shadow-sm"
+                      }`}
+                      onClick={() => setActiveLink(item.href)}
+                    >
+                      <span
+                        className={`mr-3 ${
+                          isActive(item.href) ? "text-green-600" : ""
+                        }`}
+                      >
+                        {item.icon}
+                      </span>
+                      <span className="flex-1 text-sm">{item.text}</span>
+                      {item.count !== undefined && (
+                        <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                          {item.count}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+
+          {/* Các menu item khác */}
+          {menuItems.slice(1).map((item) => (
             <li key={item.href} className="mb-2">
               <Link
                 href={item.href}
@@ -217,7 +357,12 @@ const Sidebar = ({ userData: sidebarUserData }: SidebarProps) => {
                 >
                   {item.icon}
                 </span>
-                <span>{item.text}</span>
+                <span className="flex-1">{item.text}</span>
+                {item.count !== undefined && (
+                  <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {item.count}
+                  </span>
+                )}
               </Link>
             </li>
           ))}

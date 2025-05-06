@@ -22,44 +22,48 @@ interface Book {
   code_id: number;
 }
 
-const BookListClient = () => {
-  const [allBooks, setAllBooks] = useState<Book[]>([]);  // Lưu tất cả sách từ API
+interface BookCategoryClientProps {
+  category: string;
+}
+
+const BookCategoryClient = ({ category }: BookCategoryClientProps) => {
+  const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
   
   // Số sách mỗi trang
   const BOOKS_PER_PAGE = 12;
-  
-  // Danh sách các loại sách để lọc
-  const categories = ['HSA', 'TSA', 'VACT', 'OTHER'];
 
-  // Hàm fetch danh sách sách (chỉ gọi 1 lần)
+  // Hàm fetch danh sách sách theo danh mục
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const result = await getBooks({
-        take: 20, // Lấy nhiều sách hơn để filter trên client
-        page: 1,
-        sort_field: 'created_at',
-        sort_type: 'DESC',
-        category: selectedCategory || undefined // Thêm tham số category nếu có
-      });
       
-      if (result && result.data && result.data.data) {
-        // setAllBooks(result.data.data);
-        //uncomment this line to use api data
-        setAllBooks(mockResponseDataListBook.data);
-      } else {
-        setError('Không thể tải danh sách sách');
-      }
+      // Sử dụng mockData cho giai đoạn phát triển
+      // Trong tương lai có thể thay thế bằng API thực tế:
+      // const result = await getBooks({
+      //   take: 20,
+      //   page: 1,
+      //   sort_field: 'created_at',
+      //   sort_type: 'DESC',
+      //   category: category
+      // });
+      
+      // Lọc dữ liệu theo category từ mockData
+      const filteredBooks = mockResponseDataListBook.data.filter(
+        book => book.category === category
+      );
+      
+      setBooks(filteredBooks);
+      setTotalPages(Math.ceil(filteredBooks.length / BOOKS_PER_PAGE));
+      
     } catch (err) {
-      console.error('Lỗi khi lấy danh sách sách:', err);
-      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tải danh sách sách');
-      toast.error('Không thể tải danh sách sách', {
+      console.error(`Lỗi khi lấy danh sách sách ${category}:`, err);
+      setError(err instanceof Error ? err.message : `Có lỗi xảy ra khi tải danh sách sách ${category}`);
+      toast.error(`Không thể tải danh sách sách ${category}`, {
         description: 'Vui lòng thử lại sau'
       });
     } finally {
@@ -67,67 +71,51 @@ const BookListClient = () => {
     }
   };
 
-  // Filter và tính toán phân trang dựa trên dữ liệu hiện có
+  // Lọc sách theo từ khóa tìm kiếm
   const filteredBooks = useMemo(() => {
-    // Áp dụng filter theo search term và category
-    let result = [...allBooks];
+    if (!searchTerm.trim()) return books;
     
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      result = result.filter(book => 
-        book.name.toLowerCase().includes(searchLower) || 
-        (book.description && book.description.toLowerCase().includes(searchLower))
-      );
-    }
-    
-    if (selectedCategory) {
-      result = result.filter(book => book.category === selectedCategory);
-    }
-    
-    return result;
-  }, [allBooks, searchTerm, selectedCategory]);
+    const searchLower = searchTerm.toLowerCase();
+    return books.filter(book => 
+      book.name.toLowerCase().includes(searchLower) || 
+      (book.description && book.description.toLowerCase().includes(searchLower))
+    );
+  }, [books, searchTerm]);
   
   // Tính toán phân trang
-  useEffect(() => {
-    // Tính tổng số trang
-    setTotalPages(Math.ceil(filteredBooks.length / BOOKS_PER_PAGE));
-    
-    // Đảm bảo currentPage hợp lệ 
-    if (currentPage > Math.ceil(filteredBooks.length / BOOKS_PER_PAGE)) {
-      setCurrentPage(1);
-    }
-  }, [filteredBooks, currentPage]);
-  
-  // Lấy sách để hiển thị cho trang hiện tại
   const displayedBooks = useMemo(() => {
     const startIndex = (currentPage - 1) * BOOKS_PER_PAGE;
     return filteredBooks.slice(startIndex, startIndex + BOOKS_PER_PAGE);
   }, [filteredBooks, currentPage]);
 
-  // Xử lý khi component mount hoặc selectedCategory thay đổi
+  // Xử lý khi component mount
   useEffect(() => {
     fetchBooks();
-  }, [selectedCategory]);
+  }, [category]);
+
+  // Xử lý khi filteredBooks thay đổi
+  useEffect(() => {
+    setTotalPages(Math.ceil(filteredBooks.length / BOOKS_PER_PAGE));
+    if (currentPage > Math.ceil(filteredBooks.length / BOOKS_PER_PAGE)) {
+      setCurrentPage(1);
+    }
+  }, [filteredBooks]);
 
   // Xử lý tìm kiếm
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
-    // Khi người dùng tìm kiếm, ta đã lưu searchTerm vào state
-    // Bởi vì selectedCategory đã được xử lý trong useEffect, ta không cần gọi fetchBooks ở đây
   };
 
-  // Xử lý thay đổi loại sách
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setCurrentPage(1); // Reset về trang 1 khi thay đổi bộ lọc
+  // Xử lý chuyển trang
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
-  // Xóa bộ lọc
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('');
-    setCurrentPage(1);
+  // Format tên category cho tiêu đề
+  const formatCategoryName = () => {
+    if (category === 'OTHER') return 'Sách khác';
+    return `Sách ${category}`;
   };
 
   return (
@@ -139,20 +127,19 @@ const BookListClient = () => {
         <div className="flex items-center mb-6">
           <h2 className="text-xl sm:text-2xl font-semibold text-green-700 flex items-center">
             <span className="inline-block w-2 h-8 bg-green-500 rounded-full mr-2 sm:mr-3"></span>
-            Danh sách sách
+            {formatCategoryName()}
           </h2>
         </div>
 
-        {/* Thanh tìm kiếm và bộ lọc */}
+        {/* Thanh tìm kiếm */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-          {/* Tìm kiếm */}
           <form onSubmit={handleSearch} className="flex-1">
             <div className="relative">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm kiếm sách..."
+                placeholder={`Tìm kiếm ${formatCategoryName().toLowerCase()}...`}
                 className="w-full px-4 py-3 pl-10 bg-white/80 backdrop-blur-sm border border-green-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500 w-5 h-5" />
@@ -164,25 +151,6 @@ const BookListClient = () => {
               </button>
             </div>
           </form>
-
-          {/* Bộ lọc loại sách */}
-          <div className="flex-shrink-0 md:w-72">
-            <div className="relative">
-              <select
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="w-full px-4 py-3 pl-10 appearance-none bg-white/80 backdrop-blur-sm border border-green-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                <option value="">Tất cả loại sách</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    Sách {category === 'OTHER' ? 'Khác' : category}
-                  </option>
-                ))}
-              </select>
-              <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500 w-5 h-5" />
-            </div>
-          </div>
         </div>
 
         {/* Hiển thị lỗi */}
@@ -211,10 +179,10 @@ const BookListClient = () => {
             />
             <p>Không tìm thấy sách nào phù hợp với tìm kiếm của bạn.</p>
             <button 
-              onClick={clearFilters}
+              onClick={() => setSearchTerm('')}
               className="mt-4 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition-colors"
             >
-              Xóa bộ lọc
+              Xóa tìm kiếm
             </button>
           </div>
         )}
@@ -249,26 +217,11 @@ const BookListClient = () => {
                     <h3 className="font-medium text-sm line-clamp-2 mb-1.5 text-green-900/90">{book.name}</h3>
                     <div className="flex gap-1.5 flex-wrap mt-1">
                       <span className="inline-block bg-green-100/70 text-green-700 text-xs px-1.5 py-0.5 rounded-md border border-green-200/50">
-                        {book.category || 'Khác'}
-                      </span>
-                      <span className="inline-block bg-blue-100/70 text-blue-700 text-xs px-1.5 py-0.5 rounded-md border border-blue-200/50">
-                        {book.subject}
+                        {book.subject || 'Khác'}
                       </span>
                     </div>
-                    <div className="line-clamp-2 text-xs text-gray-600 mt-2">
-                      {book.description ? (
-                        <div dangerouslySetInnerHTML={{ 
-                          __html: book.description.substring(0, 80) + (book.description.length > 80 ? '...' : '') 
-                        }} />
-                      ) : (
-                        <p>Sách {book.name}</p>
-                      )}
-                    </div>
-                    <div className="mt-auto pt-2 text-right">
-                      <span className="text-green-600 text-xs font-medium inline-flex items-center group-hover:text-green-700 transition-colors duration-300">
-                        Xem chi tiết
-                        <ChevronRight className="w-3.5 h-3.5 ml-0.5 hidden sm:inline group-hover:translate-x-0.5" />
-                      </span>
+                    <div className="mt-auto pt-2 text-xs text-gray-500">
+                      ID: {book.code_id}
                     </div>
                   </div>
                 </div>
@@ -278,59 +231,54 @@ const BookListClient = () => {
         )}
         
         {/* Phân trang */}
-        {!loading && filteredBooks.length > 0 && totalPages > 1 && (
-          <div className="flex justify-center mt-10">
-            <div className="flex items-center space-x-2">
+        {!loading && filteredBooks.length > BOOKS_PER_PAGE && (
+          <div className="flex justify-center mt-8">
+            <nav className="flex items-center space-x-1">
+              {/* Nút trang trước */}
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`px-3 py-2 rounded-md ${
+                className={`p-2 rounded-md border ${
                   currentPage === 1
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'border-green-200 text-green-600 hover:bg-green-50'
                 }`}
               >
-                Trang trước
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </button>
               
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                // Hiển thị nhiều nhất 5 trang và giữ trang hiện tại ở giữa nếu có thể
-                let pageToShow: number;
-                if (totalPages <= 5) {
-                  pageToShow = i + 1;
-                } else {
-                  // Tính toán để hiển thị trang hiện tại ở giữa
-                  const offset = Math.min(Math.max(1, currentPage - 2), totalPages - 4);
-                  pageToShow = offset + i;
-                }
-                
-                return (
-                  <button
-                    key={pageToShow}
-                    onClick={() => setCurrentPage(pageToShow)}
-                    className={`px-3 py-2 rounded-md ${
-                      currentPage === pageToShow
-                        ? 'bg-green-600 text-white'
-                        : 'bg-green-100 text-green-700 hover:bg-green-200'
-                    }`}
-                  >
-                    {pageToShow}
-                  </button>
-                );
-              })}
+              {/* Nút các trang */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === page
+                      ? 'bg-green-500 text-white'
+                      : 'text-green-600 hover:bg-green-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
               
+              {/* Nút trang sau */}
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`px-3 py-2 rounded-md ${
+                className={`p-2 rounded-md border ${
                   currentPage === totalPages
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'border-green-200 text-green-600 hover:bg-green-50'
                 }`}
               >
-                Trang sau
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
-            </div>
+            </nav>
           </div>
         )}
       </div>
@@ -338,4 +286,4 @@ const BookListClient = () => {
   );
 };
 
-export default BookListClient; 
+export default BookCategoryClient; 
