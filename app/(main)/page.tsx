@@ -1,7 +1,10 @@
-import RecentAccess from '@/components/RecentAccess';
-import ActivatedBooks from '@/components/ActivatedBooks';
-import NewestBooks from '@/components/NewestBooks';
+import HSABookSection from '@/components/HSABookSection';
+import TSABookSection from '@/components/TSABookSection';
+import VACTBookSection from '@/components/VACTBookSection';
+import OtherBookSection from '@/components/OtherBookSection';
 import { Metadata } from 'next';
+import BannerSlider from '@/components/BannerSlider';
+import ActivatedBooks from '@/components/ActivatedBooks';
 
 export const metadata: Metadata = {
   title: 'HSABook - Nền tảng Sách ID Hiện Đại',
@@ -24,21 +27,52 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <div>
-      {/* Hiển thị đầy đủ chiều rộng cho các thành phần */}
+      {/* Các danh mục sách */}
       <div className="space-y-8">
-        {/* Truy cập gần đây */}
-        <RecentAccess />
+        <div className="sidebar-section p-0 mb-4 sm:mb-6">
+          <BannerSlider />
+        </div>
         
-        {/* Layout lưới cho sách đã kích hoạt và sách mới */}
-        <div className="flex flex-col gap-2">
-          {/* Sách đã kích hoạt */}
-          <div className="flex-1">
-            <ActivatedBooks />
-          </div>
+        {/* Sách đã kích hoạt */}
+        <ActivatedBooks/>
+        
+        {/* Sách đánh giá năng lực HSA */}
+        <div className="relative mt-8 mb-12">
+          {/* Background với hiệu ứng gradient mờ */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/80 via-indigo-50/30 to-blue-50/70 rounded-xl -z-10"></div>
           
-          {/* Sách mới */}
-          <div className="flex-1">
-            <NewestBooks />
+          <div className="p-6 backdrop-blur-sm rounded-xl border border-blue-100/50 shadow-lg">
+            <HSABookSection />
+          </div>
+        </div>
+        
+        {/* Sách đánh giá tư duy TSA */}
+        <div className="relative mt-8 mb-12">
+          {/* Background với hiệu ứng gradient mờ */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-50/80 via-pink-50/30 to-purple-50/70 rounded-xl -z-10"></div>
+          
+          <div className="p-6 backdrop-blur-sm rounded-xl border border-purple-100/50 shadow-lg">
+            <TSABookSection />
+          </div>
+        </div>
+        
+        {/* Sách đánh giá năng lực VACT */}
+        <div className="relative mt-8 mb-12">
+          {/* Background với hiệu ứng gradient mờ */}
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-50/80 via-orange-50/30 to-amber-50/70 rounded-xl -z-10"></div>
+          
+          <div className="p-6 backdrop-blur-sm rounded-xl border border-amber-100/50 shadow-lg">
+            <VACTBookSection />
+          </div>
+        </div>
+        
+        {/* Các sách khác */}
+        <div className="relative mt-8 mb-12">
+          {/* Background với hiệu ứng gradient mờ */}
+          <div className="absolute inset-0 bg-gradient-to-r from-teal-50/80 via-emerald-50/30 to-teal-50/70 rounded-xl -z-10"></div>
+          
+          <div className="p-6 backdrop-blur-sm rounded-xl border border-teal-100/50 shadow-lg">
+            <OtherBookSection />
           </div>
         </div>
       </div>
